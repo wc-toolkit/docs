@@ -6,11 +6,19 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
 	integrations: [
 		starlight({
-			title: 'My Docs',
+			title: 'Web Components Workbench',
+			logo: {
+				src: "./public/favicon.svg",
+				alt: "WC Workbench Logo",
+			},
 			social: {
-				github: 'https://github.com/withastro/starlight',
+				github: 'https://github.com/orgs/wc-workbench/repositories',
 			},
 			sidebar: [
+				{
+					label: 'Introduction',
+					slug: 'getting-started',
+				},
 				{
 					label: 'Guides',
 					items: [
@@ -23,6 +31,7 @@ export default defineConfig({
 					autogenerate: { directory: 'reference' },
 				},
 			],
+			customCss: ['./src/styles/custom-styles.css'],
 		}),
 	],
 });
