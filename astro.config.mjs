@@ -4,16 +4,16 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://wc-workbench.com',
+	site: 'https://wc-toolkit.com',
 	integrations: [
 		starlight({
-			title: 'Web Components Workbench',
+			title: 'Web Components Toolkit',
 			logo: {
 				src: "./public/favicon.svg",
-				alt: "WC Workbench Logo",
+				alt: "WC Toolkit Logo",
 			},
 			social: {
-				github: 'https://github.com/orgs/wc-workbench/repositories',
+				github: 'https://github.com/orgs/wc-toolkit/repositories',
 			},
 			sidebar: [
 				{
