@@ -148,6 +148,11 @@ h6 {
   border-radius: 4px;
 }
 
+.sl-link-button {
+  font-size: 16px;
+  font-weight: bold;
+}
+
 .sl-markdown-content
   :not(h1, h2, h3, h4, h5, h6)
   + :is(h1, h2, h3, h4, h5, h6):not(:where(.not-content *)) {
