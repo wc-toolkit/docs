@@ -17,8 +17,19 @@ export default defineConfig({
 			},
 			sidebar: [
 				{
-					label: 'Introduction',
+					label: 'Getting Started',
 					slug: 'getting-started',
+				},
+				{
+					label: 'CEM Utilities',
+					items: [
+						// Each item here is one entry in the navigation menu.
+						{ label: 'Overview', slug: 'cem-utilities/overview' },
+						{ label: 'CEM Utilities', slug: 'cem-utilities/cem-utils' },
+						{ label: 'Deep Merge', slug: 'cem-utilities/deep-merge' },
+						{ label: 'Description', slug: 'cem-utilities/description' },
+						{ label: 'String Utilities', slug: 'cem-utilities/string-utils' },
+					],
 				},
 				{
 					label: 'Guides',

@@ -34,8 +34,8 @@ html body {
 :root[data-theme="dark"],
 [data-theme="dark"] ::backdrop {
   /* --sl-color-accent: #179898; */
-  --sl-color-accent: #15b5b5;
-  --sl-color-text-accent: #15b5b5;
+  --sl-color-accent: #38cdcf;
+  --sl-color-text-accent: #38cdcf;
   --sl-color-bg-sidebar: #23292f;
   --sl-color-bg: #1c2126;
 
