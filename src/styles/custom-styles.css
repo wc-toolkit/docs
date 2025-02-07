@@ -66,10 +66,10 @@ html body {
   display: flex;
   flex-direction: column-reverse;
   text-align: center;
-  padding-block: 3rem;
+  padding-block: 3rem 1rem;
 
   img {
-    width: min(100%, 15rem);
+    max-height: 15rem;
   }
 
   h1 {
