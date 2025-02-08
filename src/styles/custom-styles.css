@@ -68,6 +68,11 @@ html body {
   text-align: center;
   padding-block: 3rem 1rem;
 
+  @media screen and (max-width: 800px) {
+    display: flex;
+    flex-direction: column;
+  }
+
   img {
     max-height: 15rem;
   }
