@@ -33,10 +33,7 @@ const components = getAllComponents(manifest);
 This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
 
 ```ts
-type getAllComponents<T extends Component>(
-  customElementsManifest: unknown,
-  exclude: string[] = []
-) => T[];
+const components = getAllComponents<MyCustomComponentType>(manifest);
 ```
 
 ## Get Component By Tag
@@ -53,10 +50,7 @@ const component = getComponentByTag(manifest, 'my-component');
 This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
 
 ```ts
-type getComponentByTag<T extends Component>(
-  customElementsManifest: unknown,
-  tagName: string
-) => T;
+const component = getComponentByTag<MyCustomComponentType>(manifest, 'my-component');
 ```
 
 ## Get Component By Class Name
@@ -73,10 +67,7 @@ const component = getComponentByClassName(manifest, 'MyComponent');
 This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
 
 ```ts
-type getComponentByClassName<T extends Component>(
-  customElementsManifest: unknown,
-  className: string
-) => T;
+const component = getComponentByClassName<MyCustomComponentType>(manifest, 'MyComponent');
 ```
 
 ## Get Component Public Properties
@@ -94,9 +85,7 @@ const properties = getComponentPublicProperties(component);
 This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
 
 ```ts
-type getComponentPublicProperties<T extends Property>(
-  component: Component
-) => T[];
+const properties = getComponentPublicProperties<MyCustomPropertyType>(component);
 ```
 
 ## Get Component Public Methods
@@ -114,9 +103,8 @@ const methods = getComponentPublicMethods(component);
 This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
 
 ```ts
-type getComponentPublicMethods<T extends Method>(
-  component: Component
-) => T[];
+...
+const methods = getComponentPublicMethods<MyCustomMethods>(component);
 ```
 
 This function adds a `type` to the standard CEM `ClassMethod` type. This reconstructs the parameters, default values, and return type properties to create a complete TypeScript type.
@@ -175,18 +163,7 @@ const events = getComponentEventsWithType(component);
 This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
 
 ```ts
-type getComponentEventsWithType<T extends ComponentEvent>(
-  component: Component,
-  options: EventOptions = {}
-) => T[];
-
-/** The type used to define the configuration options for the `getComponentEventsWithType` function */
-type EventOptions = {
-  /** The name of the property where custom detail type is stored */
-  customEventDetailTypePropName?: string;
-  /** Overrides the event type from `CustomEvent` to the type specified in the event type in the CEM */
-  overrideCustomEventType?: boolean;
-};
+const events = getComponentEventsWithType<MyComponentEventType>(component);
 ```
 
 This function updates the type value to be more complete and accurate. For example, if you are defining a type in your event's JSDoc, that is typically the type for the event's `detail` property.
@@ -249,7 +226,21 @@ const NATIVE_DOM_EVENTS = [
 ];
 ```
 
-### Custom Event Detail Type
+### Event Options
+
+There are a few options that can be passed in the `options` parameter to control the behavior of the `getComponentEventsWithType` function.
+
+```ts
+/** The type used to define the configuration options for the `getComponentEventsWithType` function */
+type EventOptions = {
+  /** The name of the property where custom detail type is stored */
+  customEventDetailTypePropName?: string;
+  /** Overrides the event type from `CustomEvent` to the type specified in the event type in the CEM */
+  overrideCustomEventType?: boolean;
+};
+```
+
+#### Custom Event Detail Type
 
 If you have a custom event detail type, you use the `customEventDetailTypePropName` property in the functions `options` parameter to specify the property name where the custom detail type is stored.
 
@@ -257,7 +248,7 @@ If you have a custom event detail type, you use the `customEventDetailTypePropNa
 const events = getComponentEventsWithType(component, { customEventDetailTypePropName: 'parsedType' });
 ```
 
-### Override Custom Event Type
+#### Override Custom Event Type
 
 If you want to override the event type from `CustomEvent` to the type specified in the event type in the CEM, you can use the `overrideCustomEventType` property in the functions `options` parameter.
 
