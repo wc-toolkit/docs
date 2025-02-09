@@ -27,8 +27,9 @@ export default defineConfig({
 						{ label: 'Overview', slug: 'cem-utilities/overview' },
 						{ label: 'CEM Utilities', slug: 'cem-utilities/cem-utils' },
 						{ label: 'Deep Merge', slug: 'cem-utilities/deep-merge' },
-						{ label: 'Description', slug: 'cem-utilities/description' },
+						{ label: 'Descriptions', slug: 'cem-utilities/descriptions' },
 						{ label: 'String Utilities', slug: 'cem-utilities/string-utils' },
+						{ label: 'Custom CEM Types', slug: 'cem-utilities/types' },
 					],
 				},
 				{

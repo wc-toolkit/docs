@@ -1,11 +1,66 @@
 ---
 title: String Utilities
 description: A set of tools for retrieving and transforming data from the Custom Elements Manifest 
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_json.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_json.png
 ---
 
-The CEM is a JSON file that describes the custom elements used in a web project. 
-If you've never worked with the CEM before, you can think of it as all of the meta-data about your components and their APIs.
-At first glance, the CEM can be a bit overwhelming, but the CEM utilities are here to help!
+These are a collection of simple string manipulation utilities commonly used when working with data from the CEM.
 
-The CEM utilities are collection of functions for working with the Custom Elements Manifest (CEM). 
-They provide a way to retrieve and transform data from the CEM, making it easier to use the documentation for your web components.
+## Remove Quotes
+
+The `removeQuotes` function removes quotes from a string.
+
+```ts
+import { removeQuotes } from '@wc-toolkit/cem-utilities';
+
+const noQuotes = removeQuotes(`"my-component"`); // my-component
+const noQuotes = removeQuotes(`'my-component'`); // my-component
+```
+
+## Kebab Case
+
+The `kebabCase` function converts a string to kebab-case.
+
+```ts
+import { toKebabCase } from '@wc-toolkit/cem-utilities';
+
+const kebab = toKebabCase('myComponent'); // my-component
+```
+
+## Sentence Case
+
+The `toSentenceCase` function converts a string to sentence case.
+
+```ts
+import { toSentenceCase } from '@wc-toolkit/cem-utilities';
+
+const sentence = toSentenceCase('myComponent'); // My component
+```
+
+## Pascal Case
+
+The `toPascalCase` function converts a string to PascalCase.
+
+```ts
+import { toPascalCase } from '@wc-toolkit/cem-utilities';
+
+const pascal = toPascalCase('my-component'); // MyComponent
+```
+
+## Camel Case
+
+The `toCamelCase` function converts a string to camelCase.
+
+```ts
+import { toCamelCase } from '@wc-toolkit/cem-utilities';
+
+const camel = toCamelCase('my-component'); // myComponent
+```

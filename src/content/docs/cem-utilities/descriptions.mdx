@@ -1,0 +1,412 @@
+---
+title: Component Descriptions
+description: Functions for getting formatted descriptions from the Custom Elements Manifest 
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_json.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_json.png
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Getting a description for a custom element can be a bit tricky. 
+The content is typically all there, but it requires mapping the properties to be in a useable format.
+These utilities are designed to simplify those repetitive tasks by providing a set of functions for generating descriptions nicely formatted descriptions from the Custom Elements Manifest (CEM).
+
+## Component Details Template
+
+This function returns a formatted string with the details of the various APIs of a custom element.
+
+```ts
+import { getComponentDetailsTemplate, getComponentByTagName } from '@wc-toolkit/cem-utilities';
+import manifest from './custom-elements.json' with { type: 'json' };
+
+const component = getComponentByTagName(manifest, 'my-alert');
+const description = getComponentDetailsTemplate(component);
+```
+
+<Aside>Many of these methods use the [Custom CEM Types](./types), so please take a look at those documentation for more detailed information about how to use them.</Aside>
+
+The result will return a markdown formatted string with the details of the component's APIs. 
+This works well because most code editors and documentation tools support markdown.
+
+```markdown
+A description about what an alert is and how to use it
+
+### Attributes & Properties
+
+Component attributes and properties that can be applied to this element.
+
+- `open`: Indicates whether or not the alert is open. You can toggle this attribute to show and hide the alert, or you can
+use the `show()`, `hide()`, and `toggle()` methods. 
+- `dismissible`: Enables a close button that allows the user to dismiss the alert. 
+- `variant`: The alert's theme variant. 
+- `open-delay` / `openDelay`: The amount of time in milliseconds before the alert is shown.
+
+### Events
+
+Events that will be emitted by the component.
+
+- `alert-show`: Emitted when the alert is opened.
+- `alert-hide`: Emitted when the alert is dismissed.
+
+### Methods
+
+Methods that can be called to access component functionality.
+
+- `show() => void`: Shows the alert.
+- `hide() => void`: Hides the alert
+- `toggle() => void`: Toggles the `open` attribute and state.
+
+### Slots
+
+Areas where markup can be added to the component.
+
+- `(default)`: The alert's main content.
+- `icon`: An icon to show in the alert.
+
+### CSS Parts
+
+Custom selectors for styling elements within the component.
+
+- `base`: The component's base wrapper.
+- `icon`: The container that wraps the optional icon.
+- `message`: The container that wraps the alert's main content.
+
+### CSS States
+
+These can be used to apply styling when a component is in a given state.
+
+- `open`: Set when the alert is open.
+- `closed`: Set when the alert is closed.
+```
+
+### Configuring the Description
+
+The `getComponentDetailsTemplate` function accepts an optional `ComponentDescriptionOptions` object that can be used to configure the output.
+
+```ts
+type getComponentDetailsTemplate(
+  component?: Component,
+  options?: ComponentDescriptionOptions,
+  isJsDoc?: boolean
+) => string;
+```
+
+The `ComponentDescriptionOptions` object has the following properties:
+
+```ts
+/** Available options for configuring the way the components description is rendered */
+export type ComponentDescriptionOptions = {
+  /**
+   * The order in which the documentation for each of the APIs will be rendered
+   * If an option is not on the list, it will not be rendered
+   * @default ["attrsAndProps", "events", "methods", "slots", "cssProps", "cssParts", "cssState"]
+   */
+  order?: ApiOrderOption[];
+  /**
+   * The property name of the component description.
+   * If not provided, it will default to the `summary` then to the `description` property.
+   * If you have created a custom description property, you can provide the name here.
+   * @default "description"
+   */
+  descriptionSrc?: "description" | "summary" | (string & {});
+  /**
+   * If you have a custom property that contains your types, you can provide the name here.
+   * @default "parsedType"
+   */
+  altType?: string;
+  /** The options for each component API */
+  apis?: {
+    attributes?: ComponentApiOptions<Attribute>;
+    properties?: ComponentApiOptions<Property>;
+    attrsAndProps?: ComponentApiOptions<Attribute>;
+    propsOnly?: ComponentApiOptions<Property>;
+    events?: ComponentApiOptions<ComponentEvent>;
+    methods?: ComponentApiOptions<Method>;
+    slots?: ComponentApiOptions<Slot>;
+    cssProps?: ComponentApiOptions<CssCustomProperty>;
+    cssParts?: ComponentApiOptions<CssPart>;
+    cssState?: ComponentApiOptions<CssCustomState>;
+  };
+};
+
+/** Available options for setting the order of the docs APIs */
+export type ApiOrderOption =
+  | "attributes"
+  | "properties"
+  | "attrsAndProps"
+  | "propsOnly"
+  | "events"
+  | "methods"
+  | "slots"
+  | "cssProps"
+  | "cssParts"
+  | "cssState";
+
+/** A generic type for creating customized docs for components APIs */
+export type ComponentApiOptions<T = unknown> = {
+  /** The section heading for the API */
+  heading?: string;
+  /** Additional section description for the API */
+  description?: string;
+  /** A template for rendering the API documentation */
+  template?: (api?: T[]) => string;
+};
+```
+
+#### Order
+
+The `order` property is an array of strings that define the order in which the documentation for each of the APIs will be rendered.
+If an option is not on the list, it will not be rendered.
+
+The default order is `["attrsAndProps", "events", "slots", "methods", "cssProps", "cssParts", "cssState"]`.
+
+- `attributes` - Attributes and the corresponding properties, but no property-only members
+- `properties` - All public properties
+- `attrsAndProps` - Both attributes and all public properties (including those without a corresponding attribute)
+- `propsOnly` - Only public properties without a corresponding attribute
+- `events` - Component events
+- `methods` - Component methods
+- `slots` - Component slots
+- `cssProps` - Component CSS custom properties
+- `cssParts` - Component CSS parts
+- `cssState` - Component CSS states
+
+### Component APIs
+
+You have the ability to customize the output of each API section by providing a template function in the `apis` object.
+
+The `ComponentApiOptions` object has the following properties is a generic so you can strongly type the API you are working with. For example, here would be a simple configuration for the `slot` documentation:
+
+```ts
+const options: ComponentDescriptionOptions = {
+  apis: {
+    slots: {
+      heading: 'Slots',
+      description: 'Areas where markup can be added to the component.',
+      template: (slots) => {
+        return slots.map((slot) => {
+          return `- \`${slot.name}\`: ${slot.description}`;
+        }).join('\n');
+      }
+    }
+  }
+};
+```
+
+Because the `slots` API is an array of `Slot` objects, you can strongly type the `slots` parameter in the template function to get intellisense and type checking.
+
+### isJsDoc
+
+If the description is being used in a JSDoc comment, you can set the `isJsDoc` parameter to `true` to format the output to be places in a JSDoc comment.
+This is very helpful when these comments are being used in types.
+
+### Default Values
+
+Thees are the default values applies to the `ComponentDescriptionOptions` object:
+
+```ts
+/**
+ * Default options for rendering component descriptions
+ * @type {ComponentDescriptionOptions}
+ */
+{
+  order: [
+    "attrsAndProps",
+    "events",
+    "slots",
+    "methods",
+    "cssProps",
+    "cssParts",
+    "cssState",
+  ],
+  descriptionSrc: "description",
+  apis: {
+    attributes: {
+      heading: "Attributes",
+      description: "HTML attributes that can be applied to this element.",
+      template: (api?: Attribute[]) =>
+        api
+          ?.map((attr) => {
+            const getName = (attr: Attribute) =>
+              attr.name === attr.fieldName || !attr.fieldName
+                ? `\`${attr.name}\``
+                : `\`${attr.name}\`/\`${attr.fieldName}\``;
+
+            return `- ${getName(attr)}: ${attr.description}`;
+          })
+          .join("\n") || "",
+    },
+    properties: {
+      heading: "Properties",
+      description: "Properties that can be applied to this element using JavaScript.",
+      template: (api?: Property[]) =>
+        api
+          ?.map((prop) => `- \`${prop.name}\`: ${prop.description}`)
+          .join("\n") || "",
+    },
+    attrsAndProps: {
+      heading: "Attributes & Properties",
+      description:
+        "Component attributes and properties that can be applied to the element or by using JavaScript.",
+      template: (api?: AttributeAndProperty[]) =>
+        api
+          ?.map((prop) => {
+            const getName = (prop: AttributeAndProperty) =>
+              prop.attrName === prop.propName || !prop.attrName
+                ? `\`${prop.propName}\``
+                : `\`${prop.attrName}\`/\`${prop.propName}\``;
+            return `- ${getName(prop)}: ${prop.description} ${
+              !prop.attrName ? "(property only)" : ""
+            }`;
+          })
+          .join("\n") || "",
+    },
+    propsOnly: {
+      heading: "Properties",
+      description: "Properties that can be applied to this element using JavaScript.",
+      template: (api?: Property[]) =>
+        api
+          ?.map((prop) => `- \`${prop.name}\`: ${prop.description}`)
+          .join("\n") || "",
+    },
+    events: {
+      heading: "Events",
+      description: "Events that will be emitted by the component.",
+      template: (api?: ComponentEvent[]) =>
+        api
+          ?.map((event) => `- \`${event.name}\`: ${event.description}`)
+          .join("\n") || "",
+    },
+    methods: {
+      heading: "Methods",
+      description:
+        "Methods that can be called to access component functionality.",
+      template: (api?: Method[]) =>
+        api
+          ?.map((method) => `- \`${method.type.text}\`: ${method.description}`)
+          .join("\n") || "",
+    },
+    slots: {
+      heading: "Slots",
+      description: "Areas where markup can be added to the component.",
+      template: (api?: Slot[]) =>
+        api
+          ?.map(
+            (slot) => `- \`${slot.name || "(default)"}\`: ${slot.description}`
+          )
+          .join("\n") || "",
+    },
+    cssProps: {
+      heading: "CSS Custom Properties",
+      description: "CSS variables available for styling the component.",
+      template: (api?: CssCustomProperty[]) =>
+        api
+          ?.map(
+            (cssProp) =>
+              `- \`${cssProp.name}\`: ${cssProp.description} (default: \`${cssProp.default}\`)`
+          )
+          .join("\n") || "",
+    },
+    cssParts: {
+      heading: "CSS Parts",
+      description:
+        "Custom selectors for styling elements within the component.",
+      template: (api?: CssPart[]) =>
+        api
+          ?.map((cssPart) => `- \`${cssPart.name}\`: ${cssPart.description}`)
+          .join("\n") || "",
+    },
+    cssState: {
+      heading: "CSS States",
+      description:
+        "These can be used to apply styling when a component is in a given state.",
+      template: (api?: CssCustomState[]) =>
+        api
+          ?.map((cssState) => `- \`${cssState.name}\`: ${cssState.description}`)
+          .join("\n") || "",
+    },
+  },
+};
+```
+
+## Main Component Description
+
+The function for getting the component's description is `getMainComponentDescription`. 
+This function will return the main description of the component as well as any relevant deprecation information.
+If it's deprecated, it will include `@deprecated` JSDoc tag as well as the the deprecation message.
+
+The `descriptionSrc` parameter is used to specify the property name of the component description.
+If not provided, it will default to the `summary` then to the `description` property.
+If you have created a custom description property, you can provide the name here.
+
+```ts
+type getMainComponentDescription(
+  component: Component,
+  descriptionSrc?: "description" | "summary" | (string & {})
+) => string;
+```
+
+## Attributes & Properties
+
+The `getAttrsAndProps` function returns an array of `AttributeAndProperty` objects that contain the attributes and public properties (including those not associated with an attribute) for a component.
+This returns a custom type that combines the `Attribute` and `Property` types.
+
+```ts
+type getAttrsAndProps(component: Component) => AttributeAndProperty[];
+
+/** A combination of the Attribute and ClassField types from the custom elements manifest */
+export type AttributeAndProperty = {
+  /** The name of the attribute */
+  attrName?: string;
+  /** The name of the property */
+  propName?: string;
+  /** A markdown summary suitable for display in a listing. */
+  summary?: string;
+  /** A markdown description. */
+  description?: string;
+  /** Name of the class this is inherited from */
+  inheritedFrom?: cem.Reference;
+  /** The type that the attribute will be serialized/deserialized as. */
+  type?: cem.Type;
+  /** The default value of the attribute or property. */
+  default?: string;
+  /**
+   * Whether the attribute is deprecated.
+   * If the value is a string, it's the reason for the deprecation.
+   */
+  deprecated?: boolean | string;
+  /** Whether the property is static */
+  static?: boolean;
+  /** A reference to the source of a declaration or member. */
+  source?: cem.SourceReference;
+  /** Whether the attribute or property is readonly */
+  readonly?: boolean;
+};
+``` 
+
+## Property-Only Fields
+
+The `getPropertyOnlyFields` function returns a list of properties that do not have a corresponding attribute.
+
+```ts
+type getPropertyOnlyFields(component: Component) => Property[];
+```
+
+## Member Descriptions
+
+The `getMemberDescription` function returns a description for a member of a component with any relevant deprecation information.
+If it's deprecated, it will include `@deprecated` JSDoc tag as well as the the deprecation message.
+
+```ts
+type getMemberDescription(
+  description?: string,
+  deprecated?: boolean | string
+) => string;
+```

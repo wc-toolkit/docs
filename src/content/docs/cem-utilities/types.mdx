@@ -1,0 +1,36 @@
+---
+title: Custom CEM Types
+description: Types to make working with custom data in the CEM easier
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_json.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_json.png
+---
+
+Getting a description for a custom element can be a bit tricky. 
+The content is typically all there, but it requires mapping the properties to be in a useable format.
+The `description` simplify those repetitive tasks by providing a set of functions for generating descriptions from the Custom Elements Manifest (CEM).
+
+## Installation
+
+```bash
+npm install -D @wc-toolkit/cem-utilities
+```
+
+## Component Details Template
+
+This function returns a formatted string with the details of the various APIs of a custom element.
+
+```ts
+getComponentDetailsTemplate(
+  component: Component,
+  options?: ComponentDescriptionOptions,
+  isComment?: boolean
+) => string;
+```
+

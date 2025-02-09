@@ -1,11 +1,302 @@
 ---
-title: CEM Utilities
+title: CEM Utility Functions
 description: A set of tools for retrieving and transforming data from the Custom Elements Manifest 
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_json.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_json.png
+
 ---
 
-The CEM is a JSON file that describes the custom elements used in a web project. 
-If you've never worked with the CEM before, you can think of it as all of the meta-data about your components and their APIs.
-At first glance, the CEM can be a bit overwhelming, but the CEM utilities are here to help!
+import { Aside } from '@astrojs/starlight/components';
 
-The CEM utilities are collection of functions for working with the Custom Elements Manifest (CEM). 
-They provide a way to retrieve and transform data from the CEM, making it easier to use the documentation for your web components.
+The following is a list of utility functions that are designed to help you work with the Custom Elements Manifest (CEM) and make it easier to use the documentation for your web components.
+
+<Aside>Many of these methods use the [Custom CEM Types](./types), so please take a look at those documentation for more detailed information about how to use them.</Aside>
+
+## Get All Components
+
+The `getAllComponents` function returns an array of all the components in the CEM.
+
+```ts
+import { getAllComponents } from '@wc-toolkit/cem-utilities';
+import manifest from './path/to/your/manifest.json' with { type: 'json' };
+
+const components = getAllComponents(manifest);
+```
+
+This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
+
+```ts
+type getAllComponents<T extends Component>(
+  customElementsManifest: unknown,
+  exclude: string[] = []
+) => T[];
+```
+
+## Get Component By Tag
+
+The `getComponentByTag` function returns a single component from the CEM by its tag name.
+
+```ts
+import { getComponentByTag } from '@wc-toolkit/cem-utilities';
+import manifest from './path/to/your/manifest.json' with { type: 'json' };
+
+const component = getComponentByTag(manifest, 'my-component');
+```
+
+This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
+
+```ts
+type getComponentByTag<T extends Component>(
+  customElementsManifest: unknown,
+  tagName: string
+) => T;
+```
+
+## Get Component By Class Name
+
+The `getComponentByClassName` function returns a single component from the CEM by its class name.
+
+```ts
+import { getComponentByClassName } from '@wc-toolkit/cem-utilities';
+import manifest from './path/to/your/manifest.json' with { type: 'json' };
+
+const component = getComponentByClassName(manifest, 'MyComponent');
+```
+
+This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
+
+```ts
+type getComponentByClassName<T extends Component>(
+  customElementsManifest: unknown,
+  className: string
+) => T;
+```
+
+## Get Component Public Properties
+
+The `getComponentPublicProperties` function returns an array of all the public properties for a component.
+
+```ts
+import { getComponentPublicProperties } from '@wc-toolkit/cem-utilities';
+import manifest from './path/to/your/manifest.json' with { type: 'json' };
+
+const component = getComponentByTag(manifest, 'my-component');
+const properties = getComponentPublicProperties(component);
+```
+
+This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
+
+```ts
+type getComponentPublicProperties<T extends Property>(
+  component: Component
+) => T[];
+```
+
+## Get Component Public Methods
+
+The `getComponentPublicMethods` function returns an array of all the public methods for a component.
+
+```ts
+import { getComponentPublicMethods } from '@wc-toolkit/cem-utilities';
+import manifest from './path/to/your/manifest.json' with { type: 'json' };
+
+const component = getComponentByTag(manifest, 'my-component');
+const methods = getComponentPublicMethods(component);
+```
+
+This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
+
+```ts
+type getComponentPublicMethods<T extends Method>(
+  component: Component
+) => T[];
+```
+
+This function adds a `type` to the standard CEM `ClassMethod` type. This reconstructs the parameters, default values, and return type properties to create a complete TypeScript type.
+
+Before:
+
+```json
+{
+  "kind": "method",
+  "name": "setCustomValidity",
+  "parameters": [
+    {
+      "name": "message",
+      "type": {
+        "text": "string"
+      }
+    }
+  ],
+  "description": "Sets a custom validation message. Pass an empty string to restore validity."
+}
+```
+
+After:
+
+```json
+{
+  "kind": "method",
+  "name": "setCustomValidity",
+  "parameters": [
+    {
+      "name": "message",
+      "type": {
+        "text": "string"
+      }
+    }
+  ],
+  "description": "Sets a custom validation message. Pass an empty string to restore validity.",
+  "type": {
+    "text": "setCustomValidity(message: string) => void"
+  }
+}
+```
+
+## Get Component Events
+
+The `getComponentEventsWithType` function returns an array of all the events for a component.
+
+```ts
+import { getComponentEventsWithType } from '@wc-toolkit/cem-utilities';
+import manifest from './path/to/your/manifest.json' with { type: 'json' };
+
+const component = getComponentByTag(manifest, 'my-component');
+const events = getComponentEventsWithType(component);
+```
+
+This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
+
+```ts
+type getComponentEventsWithType<T extends ComponentEvent>(
+  component: Component,
+  options: EventOptions = {}
+) => T[];
+
+/** The type used to define the configuration options for the `getComponentEventsWithType` function */
+type EventOptions = {
+  /** The name of the property where custom detail type is stored */
+  customEventDetailTypePropName?: string;
+  /** Overrides the event type from `CustomEvent` to the type specified in the event type in the CEM */
+  overrideCustomEventType?: boolean;
+};
+```
+
+This function updates the type value to be more complete and accurate. For example, if you are defining a type in your event's JSDoc, that is typically the type for the event's `detail` property.
+
+```ts
+/**
+ * 
+ * @tag my-component
+ * @event {MyEventDetailType} my-event - This is a custom event
+ */
+class MyComponent extends HTMLElement {
+  ...
+}
+```
+
+This function will update the type to include the `CustomEvent` type and the type from the JSDoc. 
+The `type.text` property will be updated `CustomEvent<MyEventDetailType>`.
+
+If the event does not have a custom detail type, the `type.text` property will be updated to `CustomEvent`.
+
+If the event is emitting a native DOM event like one from the list below, the `type.text` property will use that event name.
+
+```ts
+/**
+ * 
+ * @tag my-component
+ * @event {InputEvent} input - Documenting input event
+ */
+class MyComponent extends HTMLElement {
+  ...
+}
+```
+
+The `type.text` property will be updated to `InputEvent`.
+
+```ts
+const NATIVE_DOM_EVENTS = [
+  "AnimationEvent",
+  "BeforeUnloadEvent",
+  "ClipboardEvent",
+  "DragEvent",
+  "Event",
+  "FocusEvent",
+  "HashChangeEvent",
+  "InputEvent",
+  "KeyboardEvent",
+  "MessageEvent",
+  "MouseEvent",
+  "MutationObserver",
+  "PageTransitionEvent",
+  "PointerEvent",
+  "PopStateEvent",
+  "ProgressEvent",
+  "StorageEvent",
+  "TouchEvent",
+  "TransitionEvent",
+  "UIEvent",
+  "WebGLContextEvent",
+  "WheelEvent",
+];
+```
+
+### Custom Event Detail Type
+
+If you have a custom event detail type, you use the `customEventDetailTypePropName` property in the functions `options` parameter to specify the property name where the custom detail type is stored.
+
+```ts
+const events = getComponentEventsWithType(component, { customEventDetailTypePropName: 'parsedType' });
+```
+
+### Override Custom Event Type
+
+If you want to override the event type from `CustomEvent` to the type specified in the event type in the CEM, you can use the `overrideCustomEventType` property in the functions `options` parameter.
+
+```ts
+const events = getComponentEventsWithType(component, { overrideCustomEventType: true });
+```
+
+```ts
+/**
+ * 
+ * @tag my-component
+ * @event {MyComponentEvent} input - Documenting input event
+ */
+class MyComponent extends HTMLElement {
+  ...
+}
+```
+
+The `type.text` property will be updated to `MyComponentEvent`.
+
+## Get Custom Event Detail Types
+
+The `getCustomEventDetailTypes` function returns an array of all the custom event detail types for a component.
+This is often used for generating a list of event names for an import in a type definition file.
+If the event detail type is not a named type, custom type, or a generic, it will not be included in the list.
+
+```ts
+import { getCustomEventDetailTypes } from '@wc-toolkit/cem-utilities';
+import manifest from './path/to/your/manifest.json' with { type: 'json' };
+
+const component = getComponentByTag(manifest, 'my-component');
+const customEventDetailTypes = getCustomEventDetailTypes(component);
+```
+
+A list of excluded types can also be passed in as a parameter.
+
+```ts
+type getCustomEventDetailTypes<T extends CustomEventDetailType>(
+  component: Component,
+  excludedTypes: string[] = []
+) => T[];
+```
