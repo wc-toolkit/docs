@@ -19,6 +19,12 @@ The following is a list of utility functions that are designed to help you work 
 
 <Aside>Many of these methods use the [Custom CEM Types](./types), so please take a look at those documentation for more detailed information about how to use them.</Aside>
 
+## Installation
+
+```bash
+npm install -D @wc-toolkit/cem-utilities
+```
+
 ## Get All Components
 
 The `getAllComponents` function returns an array of all the components in the CEM.
@@ -260,14 +266,14 @@ const events = getComponentEventsWithType(component, { overrideCustomEventType: 
 /**
  * 
  * @tag my-component
- * @event {MyComponentEvent} input - Documenting input event
+ * @event {MyComponentEvent} my-event - Documenting input event
  */
 class MyComponent extends HTMLElement {
   ...
 }
 ```
 
-The `type.text` property will be updated to `MyComponentEvent`.
+The `type.text` property will be updated to `MyComponentEvent` instead of `CustomEvent<MyComponentEvent>`.
 
 ## Get Custom Event Detail Types
 
@@ -286,8 +292,5 @@ const customEventDetailTypes = getCustomEventDetailTypes(component);
 A list of excluded types can also be passed in as a parameter.
 
 ```ts
-type getCustomEventDetailTypes<T extends CustomEventDetailType>(
-  component: Component,
-  excludedTypes: string[] = []
-) => T[];
+const customEventDetailTypes = getCustomEventDetailTypes(component, ['Type1', 'Type2']);
 ```

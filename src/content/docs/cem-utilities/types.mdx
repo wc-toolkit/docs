@@ -15,6 +15,14 @@ head:
 The following are a set of types that extend the Custom Elements Manifest types to allow for strongly typing your custom data. 
 These types are used throughout the CEM utilities to provide a more robust and type-safe experience when working with the CEM.
 
+## Installation
+
+```bash
+npm install -D @wc-toolkit/cem-utilities
+```
+
+## Types
+
 ```ts
 /** A generic extension of the CEM `CustomElement` type to allow for strongly typing your custom data */
 export type Component<T = Record<string, unknown>> = cem.CustomElement & T;

@@ -14,17 +14,25 @@ head:
 
 The `deepMerge` function is a simple utility for merging two objects together. This is commonly used when updating CEM objects or updating default settings with custom configurations.
 
+## Installation
+
+```bash
+npm install -D @wc-toolkit/cem-utilities
+```
+
+## Usage
+
 ```ts
 import { deepMerge } from '@wc-toolkit/cem-utilities';
 
 const obj1 = { a: 1, b: 2 };
 const obj2 = { b: 3, c: 4 };
 
-const merged = deepMerge(obj1, obj2);
+const merged = deepMerge(obj1, obj2); // { a: 1, b: 3, c: 4 }
 ```
 
 This function is generic, so you can pass in a type parameter to strongly type the return value.
 
 ```ts
-type deepMerge<T = object>(target: unknown, source: unknown) => T;
+const merged = deepMerge<MyConfig>(obj1, obj2);
 ```
