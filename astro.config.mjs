@@ -32,6 +32,14 @@ export default defineConfig({
 						{ label: 'Custom CEM Types', slug: 'cem-utilities/types' },
 					],
 				},
+				{
+					label: 'Documentation',
+					items: [
+						// Each item here is one entry in the navigation menu.
+						{ label: 'Overview', slug: 'documentation/overview' },
+						{ label: 'JSDoc Tags', slug: 'documentation/jsdoc-tags' },
+					],
+				},
 				// {
 				// 	label: 'Guides',
 				// 	items: [
