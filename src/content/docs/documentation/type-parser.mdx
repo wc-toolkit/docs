@@ -1,0 +1,170 @@
+---
+title: Type Parser
+description: Get access to your API's TypeScript values
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_ts.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_ts.png
+hero:
+  title: 'Type Parser'
+  tagline: Get access to your API's TypeScript values
+  image:
+    alt: A workbench with tools, html, css, javascript, and JSDoc logos
+    file: ../../../assets/wc-toolkit_ts.png
+---
+
+Using type aliases to define the types for your component’s APIs, can be helpful for keeping your code clean and organized as well as making your types reusable.
+
+The down-side is that it can be difficult to integrate with other tooling or communicate in documentation what the available options are. 
+This plugin parses the types so they available in a more usable format.
+
+## Installation
+
+```bash
+npm i -D @wc-toolkit/type-parser
+```
+
+## Usage
+
+Using type aliases to define the types for your component's APIs, can be helpful for keeping your code clean and organized as well as making your types reusable.
+
+```ts
+// my-component.ts
+
+type Target = '_blank' | '_self' | '_parent' | '_top';
+
+class MyLink extends HTMLElement {
+  target?: Target;
+}
+```
+
+This plugin parses the types for your component APIs in Custom Elements Manifest using the [Custom Element Manifest Analyzer](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/).
+
+```js
+// custom-elements-manifest.config.js
+
+import { getTsProgram, typeParserPlugin } from "@wc-toolkit/type-parser";
+
+export default {
+  ...
+  // Give the plugin access to the TypeScript type checker
+  overrideModuleCreation({ts, globs}) {
+    const program = getTsProgram(ts, globs, "tsconfig.json");
+    return program
+      .getSourceFiles()
+      .filter((sf) => globs.find((glob) => sf.fileName.includes(glob)));
+  },
+
+  // Add the plugin to the config
+  plugins: [typeParserPlugin()],
+};
+```
+
+## Result
+
+It doesn't overwrite the existing property, but will create a new property with the parsed type value.
+
+```json
+// custom-elements.json
+{
+  "kind": "field",
+  "name": "target",
+  "description": "A lookup type for example",
+  "attribute": "target",
+  "type": {
+    "text": "Target | undefined"
+  },
+  "parsedType": {
+    "text": "'_blank' | '_self' | '_parent' | '_top' | undefined"
+  }
+}
+```
+
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/stackblitz-starters-cngwm94d?file=README.md)
+
+## Complex types
+
+The plugin will also parse complex types, such as union, intersection, and generic types. 
+It will also supports Enums and TypeScript's utility types.
+
+```ts
+type Test1 = "value1" | "value2" | "value3";
+type Test2 = "value4" | "value5" | "value6";
+
+type UnionType = Test1 | Test2; // "value1" | "value2" | "value3" | "value4" | "value5" | "value6"
+type ExcludeUnionType = Exclude<Test1 | Test2, "value1">; // "value2" | "value3" | "value4" | "value5" | "value6"
+type GenericType<T> = T | Test1; // T | "value1" | "value2" | "value3"
+type MyGeneric = GenericType<Test2>; // "value4" | "value5" | "value6" | "value1" | "value2" | "value3"
+enum DirectionEnum {
+  Up,
+  Down,
+  Left,
+  Right,
+}; // 0 | 1 | 2 | 3
+type DirectionOptions = keyof typeof DirectionEnum; // "Up" | "Down" | "Left" | "Right"
+```
+
+## Limitations
+
+The plugin will attempt exclude parsing types that are identified in the the `exclude` option in your `tsconfig.json` file.
+However, it is not perfect and may still parse types that you don't want parsed, but it shouldn't impact the final outcome as this is a feature intended to improve performance.
+
+The plugin will also exclude types from the `node_modules` folder. If `node_modules` is not excluded from his process, it will cause the process to run out of memory.
+There are options in the works to allow you to specify which projects to include, but it's not available yet.
+
+## Configuration
+
+There are a few ways you can configure the plugin to meet your environment.
+
+```ts
+type Options = {
+  /** Determines the name of the property used in the manifest to store the parsed type */
+  propertyName?: string;
+  /** Shows process logs */
+  debug?: boolean;
+  /** Prevents plugin from executing when true */
+  skip?: boolean;
+}
+```
+
+### Property Name
+
+The default property name that the values are assigned to is `parsedType`. 
+If you want to change that, you can do so by passing the `propertyName` option.
+
+
+```js
+// custom-elements-manifest.config.js
+
+export default {
+  ...
+
+  /** Provide custom plugins */
+  plugins: [typeParserPlugin({ propertyName: "expandedType" })],
+};
+```
+
+Once that has been updated, the parsed type will appear under the new property name.
+
+```json
+{
+  "kind": "field",
+  "name": "target",
+  "description": "A lookup type for example",
+  "attribute": "target",
+  "type": {
+    "text": "Target | undefined"
+  },
+  "expandedType": {
+    "text": "'_blank' | '_self' | '_parent' | '_top' | undefined"
+  }
+}
+```
+
+> **NOTE:** As you can see in the example above, the structure will follow the same pattern as the `type` object in that your custom name will have a property called `text`.
+

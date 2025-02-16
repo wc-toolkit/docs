@@ -38,6 +38,7 @@ export default defineConfig({
 						// Each item here is one entry in the navigation menu.
 						{ label: 'Overview', slug: 'documentation/overview' },
 						{ label: 'JSDoc Tags', slug: 'documentation/jsdoc-tags' },
+						{ label: 'Type Parser', slug: 'documentation/type-parser' },
 					],
 				},
 				// {
