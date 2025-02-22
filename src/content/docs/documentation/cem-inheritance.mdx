@@ -1,0 +1,71 @@
+---
+title: CEM Inheritance
+description: Mapping inherited content (including class members, attributes, CSS parts, CSS variables, slots, and events) from parent web component classes in the Custom Elements Manifest 
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_jsdoc.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_jsdoc.png
+hero:
+  title: 'CEM Inheritance'
+  tagline: Map inherited content from parent components in the Custom Elements Manifest
+  image:
+    alt: A workbench with tools, html, css, javascript, and JSDoc logos
+    file: ../../../assets/wc-toolkit_jsdoc.png
+---
+
+
+This tool maps inherited content (including class members, attributes, CSS parts, CSS variables, slots, and events) from parent components in the Custom Elements Manifest (CEM). 
+This helps in maintaining a clear and comprehensive documentation of web components and their inheritance hierarchy and reduces the need for duplicate documentation for component with shared APIs.
+
+## Installation
+
+To install the package, use the following command:
+
+```bash
+npm install @wc-toolkit/cem-inheritance
+```
+
+## Usage
+
+This package includes two ways to update the Custom Elements Manifest:
+
+1. using it in a script
+2. as a plugin for the [Custom Element Manifest Analyzer](https://custom-elements-manifest.open-wc.org/).
+
+### Script
+
+```js
+// my-script.js
+
+import { updateCemInheritance } from "@wc-toolkit/cem-inheritance";
+import manifest from "./path/to/custom-elements.json" with { type: 'json' };
+
+const options = {...};
+
+updateCemInheritance(manifest, options);
+```
+
+### CEM Analyzer
+
+The plugin can be added to the [Custom Elements Manifest Analyzer configuration file](https://custom-elements-manifest.open-wc.org/analyzer/config/#config-file).
+
+```js
+// custom-elements-manifest.config.js
+
+import { cemInheritancePlugin } from "custom-elements-manifest-inheritance";
+
+const options = {...};
+
+export default {
+  /** Enable this if you are extending a third-party library */
+  dependencies: true,
+  plugins: [
+    cemInheritancePlugin(options)
+  ],
+};
+```
