@@ -1,0 +1,218 @@
+---
+title: CEM Inheritance
+description: Mapping inherited content (including class members, attributes, CSS parts, CSS variables, slots, and events) from parent web component classes in the Custom Elements Manifest 
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_cem-inheritance.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_cem-inheritance.png
+hero:
+  title: 'CEM Inheritance'
+  tagline: Map inherited content from parent components in the Custom Elements Manifest
+  image:
+    alt: A workbench with tools, html, css, javascript, and JSDoc logos
+    file: ../../../assets/wc-toolkit_cem-inheritance.png
+---
+
+
+This tool maps inherited content (including class members, attributes, CSS parts, CSS variables, slots, and events) from parent components in the Custom Elements Manifest (CEM). 
+This helps in maintaining a clear and comprehensive documentation of web components and their inheritance hierarchy and reduces the need for duplicate documentation for component with shared APIs.
+
+## Installation
+
+To install the package, use the following command:
+
+```bash
+npm install @wc-toolkit/cem-inheritance
+```
+
+## Usage
+
+This package includes two ways to update the Custom Elements Manifest:
+
+1. using it in a script
+2. as a plugin for the [Custom Element Manifest Analyzer](https://custom-elements-manifest.open-wc.org/).
+
+### Script
+
+```js
+// my-script.js
+
+import { updateCemInheritance } from "@wc-toolkit/cem-inheritance";
+import manifest from "./path/to/custom-elements.json" with { type: 'json' };
+
+const options = {...};
+
+updateCemInheritance(manifest, options);
+```
+
+### CEM Analyzer
+
+The plugin can be added to the [Custom Elements Manifest Analyzer configuration file](https://custom-elements-manifest.open-wc.org/analyzer/config/#config-file).
+
+```js
+// custom-elements-manifest.config.js
+
+import { cemInheritancePlugin } from "@wc-toolkit/cem-inheritance";
+
+const options = {...};
+
+export default {
+  /** Enable this if you are extending a third-party library */
+  dependencies: true,
+  plugins: [
+    cemInheritancePlugin(options)
+  ],
+};
+```
+<div style="text-align: center; margin-top: 32px;">
+  <a href="https://stackblitz.com/edit/stackblitz-starters-57ju3afb?file=README.md" target="_blank">
+    <img
+      alt="Open in StackBlitz"
+      src="https://developer.stackblitz.com/img/open_in_stackblitz.svg"
+    />
+  </a>
+</div>
+
+## Configuration
+
+There are a number of configurations you can apply to customize the output for your components.
+
+```ts
+type Options = {
+  /** Name of the updated CEM file - default is "custom-elements.json" */
+  fileName?: string;
+  /** Path to output directory */
+  outdir?: string;
+  /** Class names of any components you would like to exclude from inheritance */
+  exclude?: string[];
+  /** Omit items from inheritance based on CEM Analyzer plugin config */
+  omitByConfig?: ClassOmit;
+  /** Omit items from inheritance based on a custom CEM property */
+  omitByProperty?: OmittedProperties;
+  /** Skip inheritance for an aspect of your components */
+  ignore?: string[];
+  /** External CEMs that your components extend */
+  externalManifests?: unknown[];
+  /** Shows process logs */
+  debug?: boolean;
+  /** Prevents plugin from executing */
+  skip?: boolean;
+};
+```
+
+## Omitting APIs
+
+If there are any parts of your parent classes you do not want to have inherited, you can have them omitted from the component.
+
+There are two ways to exclude them:
+
+1. setting a configuration in the options
+1. using custom properties in the Custom Elements Manifest
+
+<Aside>This does not remove the feature from the component, it only removes it from the Custom Elements Manifest.</Aside>
+
+### Omit By Config
+
+The first way to omit an API is by using the `omitByConfig` setting. 
+This allows you to specify a class name and any aspect of the inherited members can include a string array of the name of the feature to be excluded.
+This is useful if you do not have direct access to the components.
+
+```ts
+const options = {
+  omitByConfig: {
+    MyElement: {
+      cssProperties: ["--my-css-property"],
+      events: ["my-event", "my-other-event"],
+    },
+  },
+};
+```
+
+### Omit By Property
+The second way to omit an API is by using the `omitByProperty` setting.
+This allows you to specify a property name in the Custom Elements Manifest that contains a string array of the name of the item you would like to omit.
+
+Here are the default property names:
+
+```ts
+const defaultOmittedProperties: OmittedProperties = {
+  cssProperties: "omitCssProps",
+  cssParts: "omitCssParts",
+  cssStates: "omitCssStates",
+  methods: "omitMethods",
+  attributes: "omit",
+  properties: "omit",
+  events: "omitEvents",
+  slots: "omitSlots",
+};
+```
+
+### Using JSDoc Tags
+
+_If you are using the CEM Analyzer_, you can use custom JSDoc tags to omit inherited APIs.
+
+```ts
+/**
+ * Component where items are omitted from the JSDoc tags
+ *
+ * @tag my-jsdoc-omit-component
+ *
+ * @omit age - this will work for properties and attributes
+ * @omit-cssprop --property-name
+ * @omit-cssState state-name
+ * @omit-event event-name
+ * @omit-method methodName
+ * @omit-part part-name
+ * @omit-slot slot-name
+ * 
+ */
+```
+import { Aside } from '@astrojs/starlight/components';
+
+## Setting Output Targets
+
+If you would like to add your updated Custom Elements Manifest to a specific location in your project, you can use the `fileName` and `outdir` setting for that. 
+Otherwise, the updated manifest will be default location - `./custom-elements.json`.
+
+<Aside>If you are using the CEM Analyzer, you do not need to set these options. It will allow the analyzer to handle it based on your configuration.</Aside>
+
+## Excluding Components
+
+If there are any classes you would like to exclude from inheritance, you can specify the class names in the `exclude` string array.
+
+```ts
+const options = {
+  exclude: ["MyInternalElement", "MySubElement"],
+};
+```
+
+
+## Excluding APIs
+
+Some CEM generators will already handle some aspects of the inheritance for you or you may want to exclude an aspect of the inheritance and manage it yourself. 
+If that's the case, you can use the `ignore` setting to skip an area of inheritance.
+
+```ts
+const options = {
+  ignore: ["attributes", "members"],
+};
+```
+
+## Including External Manifests
+
+If your components are being extended from an existing library, you can import that library's manifest and add it to the `externalManifests` array. 
+You can add as many manifest to this as you need. 
+The external manifest's components will not be added to your manifest, but only update the information for your components.
+
+```ts
+import externalCEM from "path/to/external/custom-elements.json" with { type: "json" };
+
+const options = {
+  externalManifests: [externalCEM],
+};
+```

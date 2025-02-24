@@ -58,6 +58,7 @@ export default defineConfig({
           items: [
             // Each item here is one entry in the navigation menu.
             { label: "Overview", slug: "documentation/overview" },
+						{ label: 'CEM Inheritance', slug: 'documentation/cem-inheritance' },
             { label: "JSDoc Tags", slug: "documentation/jsdoc-tags" },
             { label: "Type Parser", slug: "documentation/type-parser" },
           ],
