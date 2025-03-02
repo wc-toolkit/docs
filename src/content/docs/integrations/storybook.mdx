@@ -40,16 +40,16 @@ There are a number of things that this helper library does to provide developers
 ## Before You Install
 
 1. Follow the installation steps in the [Storybook docs](https://storybook.js.org/docs/web-components/get-started/install)
-2. Load your custom elements manifest into Storybook in the `preview.js` file:
+2. Load your custom elements manifest into Storybook in the `.storybook/preview.js` file:
 
 ```js
 import { setCustomElementsManifest } from "@storybook/web-components";
-import customElements from "./path/to/custom-elements.json";
+import manifest from "./path/to/custom-elements.json" with { type: "json" };
 
-setCustomElementsManifest(customElements);
+setCustomElementsManifest(manifest);
 ```
 
-3. Add the expanded controls to your config in the `preview.js` file:
+3. Add the expanded controls to your config in the `.storybook/preview.js` file:
 
 ```js
 export const parameters = {
@@ -64,7 +64,7 @@ export const parameters = {
 ## Installation
 
 ```bash
-npm i -D wc-storybook-helpers
+npm i -D @wc-toolkit/storybook-helpers
 ```
 
 ## Setup
@@ -72,19 +72,21 @@ npm i -D wc-storybook-helpers
 Import the storybook helpers into your story:
 
 ```js
-import { getWcStorybookHelpers } from "wc-storybook-helpers";
+// my-element.stories.ts
+import { getStorybookHelpers } from "@wc-toolkit/storybook-helpers";
 ```
 
 Pass your element's tag name into the Storybook helper function.
 
 ```js
-const { events, args, argTypes, template } =
-  getWcStorybookHelpers("my-element");
+// my-element.stories.ts
+const { events, args, argTypes, template } = getStorybookHelpers("my-element");
 ```
 
 Add the `argTypes` and `events` to your story config:
 
 ```js
+// my-element.stories.ts
 import type { Meta, StoryObj } from "@storybook/web-components";
 
 const meta: Meta<MyElement> = {
@@ -104,6 +106,8 @@ export default meta;
 Add the template to your story's template and pass in the story `args` into the `template` function (this is an optional parameter, but required for arguments to function properly):
 
 ```ts
+// my-element.stories.ts
+
 /**
  * create Story type that will provide autocomplete and docs for `args`,
  * but also allow for namespaced args like CSS Shadow Parts and Slots
@@ -139,15 +143,7 @@ The reference name will be documented with the control's description.
 That reference can then be used to bind default values to the template.
 
 ```ts
-const DefaultTemplate = (args: any) => template(args);
-
-export const Default: any = DefaultTemplate.bind({});
-Default.args = {
-  docsHint: "Some other value than the default",
-};
-```
-
-```ts
+// my-element.stories.ts
 export const Default: Story = {
   render: (args) => template(args),
   args: {
@@ -161,6 +157,7 @@ export const Default: Story = {
 If you use the `@deprecated` tag in your jsDoc descriptions, those will also display in the description.
 
 ```ts
+// my-element.ts
 /**
  * @deprecated replaced by `docs-hint`
  * Copy for the read the docs hint.
@@ -176,6 +173,7 @@ oldDocsHint = "Click on the Vite and Lit logos to learn more";
 If you would like to change any of your controls, you can easily override it using the spread operator and passing in an updated `argType` after the helper `argTypes`.
 
 ```js
+// my-element.stories.ts
 export default {
   title: "Components/My Element",
   component: "my-element",
@@ -209,6 +207,7 @@ If you want to capture the events output by your component, you can map them to 
 **Note:** They will only be captured if the `bubbles` option on your `CustomEvent` is set to `true` (note - it is `true` by default).
 
 ```js
+// my-element.stories.ts
 export default {
   ...
   parameters: {
@@ -222,6 +221,7 @@ export default {
 If you would like to map additional events to your story, you can use the spread operator to extend the values.
 
 ```js
+// my-element.stories.ts
 export default {
   ...
   parameters: {
@@ -261,8 +261,9 @@ Templates are configured to automatically map the control's attributes, properti
 Templates take 2 arguments - story arguments and slot data. You can use the controls and story `args` to provide slot data, but if you want more granular control, using the `slot` parameter on the template with more editor support.
 
 ```ts
-const SelectTemplate = (args: any) =>
-  template(
+// my-element.stories.ts
+export const Default: Story = {
+  render: (args) => template(
     args,
     html`
       <span slot="label">My Select</span>
@@ -270,11 +271,10 @@ const SelectTemplate = (args: any) =>
       <my-option>Option 2</my-option>
       <my-option>Option 3</my-option>
     `
-  );
-
-export const Default: any = SelectTemplate.bind({});
-Default.args = {
-  docsHint: "Some other value than the default",
+  ),
+  args: {
+    docsHint: "Some other value than the default",
+  },
 };
 ```
 
@@ -283,7 +283,9 @@ Default.args = {
 Component templates can be interpolated into a story's template with additional content.
 
 ```ts
-const FormTemplate = (args: any) => html`
+// my-element.stories.ts
+export const Default: Story = {
+  render: (args) => html`
   <form>
     ${template(
       args,
@@ -294,72 +296,96 @@ const FormTemplate = (args: any) => html`
         <my-option>Option 3</my-option>
       `
     )}
-
     <button>Submit</button>
   </form>
-`;
+`,
+  args: {
+    docsHint: "Some other value than the default",
+  },
+};
 ```
 
-The template also exposes a variable named `component` that references the custom element so you can use custom logic with it.
+If you have enabled the [`setComponentVariable`](#add-component-variable) option, the template also exposes a variable named `component` that references the custom element so you can use custom logic with it.
 
 ```ts
-const ComponentTemplate = (args: any) => html`
-  ${template(
-    args,
-    html`
-      <span slot="label">My Select</span>
-      <my-option value="1">Option 1</my-option>
-      <my-option value="2">Option 2</my-option>
-      <my-option value="3">Option 3</my-option>
-    `
-  )}
-  <script>
-    // set property values
-    component.value = "2";
+// my-element.stories.ts
+export const Default: Story = {
+  render: (args) => html`
+    ${template(
+      args,
+      html`
+        <span slot="label">My Select</span>
+        <my-option value="1">Option 1</my-option>
+        <my-option value="2">Option 2</my-option>
+        <my-option value="3">Option 3</my-option>
+      `
+    )}
+    <script>
+      // set property values
+      component.value = "2";
 
-    // call component methods
-    component.show();
-  </script>
-`;
+      // call component methods
+      component.show();
+    </script>
+  `,
+  args: {
+    docsHint: "Some other value than the default",
+  },
+}
 ```
 
-## Using Slot Controls
+### Using Slot Controls
 
 If you are using the `template`, using slots form the controls panel is fairly straight forward. The input is already wired up to the appropriate slot and so rich content can be added directly to the input with no additional set-up required.
 
 ![screenshot of storybook control panel with a select input expanded displaying options](https://github.com/break-stuff/wc-storybook-helpers/blob/main/demo/img/slots.png?raw=true)
 
-## Using CSS Shadow Parts Controls
+### Using CSS Shadow Parts and States Controls
 
-Like the slot controls, the `template` makes working with CSS Shadow Parts easy. The template is pre-configured with the appropriate code to apply styles to the component's parts. You can simply apply the styles directly to the control input.
+Like the slot controls, the `template` makes working with CSS Shadow Parts and custom CSS States easy. 
+The template is pre-configured with the appropriate code for styling to the component's parts and states. 
+You can simply apply the styles directly to the control input.
 
 ![screenshot of storybook control panel with a select input expanded displaying options](https://github.com/break-stuff/wc-storybook-helpers/blob/main/demo/img/parts.png?raw=true)
 
-## Configuration
+## Global Configuration
 
-The helpers package provides a way to set global configurations for your stories using the `setWcStorybookHelpersConfig` function. This can be added to the `.storybook/preview.js` file.
+The helpers package provides a way to set global configurations for your stories using the `setStorybookHelpersConfig` function. This can be added to the `.storybook/preview.js` file.
 
 ```ts
 //preview.js
-import { setWcStorybookHelpersConfig } from "wc-storybook-helpers";
+import { setStorybookHelpersConfig, type Options } from "@wc-toolbox/storybook-helpers";
 
-setWcStorybookHelpersConfig({ ... });
-setCustomElementsManifest(customElements);
+const options: Options = {...}
+
+setStorybookHelpersConfig(options);
 ```
 
 The helpers can be passed the following options:
 
 ```ts
-interface Options {
+type Options = {
   /** hides the `arg ref` label on each control */
   hideArgRef?: boolean;
   /** sets the custom type reference in the Custom Elements Manifest */
   typeRef?: string;
   /** Adds a <script> tag where a `component` variable will reference the story's component */
-  setComponentVariable: false,
+  setComponentVariable?: boolean;
   /** renders default values for attributes and CSS properties */
-  renderDefaultValues: false,
-}
+  renderDefaultValues?: boolean;
+  /** Category order */
+  categoryOrder?: Array<Categories>;
+};
+
+type Categories =
+  | "attributes"
+  | "cssParts"
+  | "cssProps"
+  | "cssStates"
+  | "events"
+  | "methods"
+  | "properties"
+  | "slots";
 ```
 
 ### Hide "Arg Refs"
@@ -367,23 +393,25 @@ interface Options {
 There may be times you want to hide the "arg ref" label. You can set the `hideArgRef` to `true` and it will remove the label from controls.
 
 ```ts
-setWcStorybookHelpersConfig({ hideArgRef: true });
+setStorybookHelpersConfig({ hideArgRef: true });
 ```
 
 ### Custom Types using `typeRef`
 
-It is common for teams to parse or create custom types and add them to the Custom Elements Manifest to use for other tools (if you're not already, [CEM Analyzer Expanded Types plugin](https://www.npmjs.com/package/cem-plugin-expanded-types)) can help with this. The helpers can be configured to use those types instead of the default types in your manifest using the `typeRef`. If no custom type is found, it will fallback to the default type.
+It is common for teams to parse or create custom types and add them to the Custom Elements Manifest to use for other tools (if you're not already, [Type Parser plugin](/documentation/type-parser)) can help with this. 
+The helpers can be configured to use those types instead of the default types in your manifest using the `typeRef`. 
+If no custom type is found, it will fallback to the default type.
 
 ```ts
-setWcStorybookHelpersConfig({ typeRef: "expandedType" });
+setStorybookHelpersConfig({ typeRef: "parsedType" });
 ```
 
-### Add Component Variable
+### Set Component Variable
 
 Every story using the `template` helper includes the option to add a script tag with a reference to the custom element in the `component` variable. The `setComponentVariable` option adds this script tag and the variable.
 
 ```ts
-setWcStorybookHelpersConfig({ setComponentVariable: true });
+setStorybookHelpersConfig({ setComponentVariable: true });
 ```
 
 ### Render Default Attribute Values
@@ -391,5 +419,35 @@ setWcStorybookHelpersConfig({ setComponentVariable: true });
 If an `arg` value matches the default value, it will not be added to the component. To always show the default values for attributes and CSS custom properties, enable the `renderDefaultValues` setting:
 
 ```ts
-setWcStorybookHelpersConfig({ renderDefaultValues: true });
+setStorybookHelpersConfig({ renderDefaultValues: true });
+```
+
+## Story Configuration
+
+The `getStorybookHelpers` function can be passed an options object to configure the helpers on a per-story basis.
+
+```ts
+// my-element.stories.ts
+import { getStorybookHelpers, type StoryOptions } from "@wc-toolkit/storybook-helpers";
+
+const options: StoryOptions = {...};
+const { events, args, argTypes, template } = getStorybookHelpers("my-element", options);
+```
+
+```ts
+type StoryOptions = {
+  /** Categories to exclude from these stories */
+  excludeCategories?: Array<Categories>;
+};
+```
+
+### Exclude Categories
+
+If you would like to exclude certain categories from your story, you can pass an array of categories to the `excludeCategories` option.
+
+```ts
+// my-element.stories.ts
+const { events, args, argTypes, template } = getStorybookHelpers("my-element", {
+  excludeCategories: ["cssProps", "cssStates"],
+});
 ```
