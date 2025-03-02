@@ -62,6 +62,14 @@ export default defineConfig({
             { label: "Type Parser", slug: "documentation/type-parser" },
           ],
         },
+        {
+          label: "Integrations",
+          items: [
+            // Each item here is one entry in the navigation menu.
+            { label: "Overview", slug: "integrations/overview" },
+            { label: "Storybook", slug: "integrations/storybook" },
+          ],
+        },
         // {
         // 	label: 'Guides',
         // 	items: [
