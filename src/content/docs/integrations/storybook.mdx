@@ -18,6 +18,7 @@ hero:
     file: ../../../assets/wc-toolkit_jsdoc.png
 ---
 
+import { Aside } from '@astrojs/starlight/components';
 
 These helpers are designed to make integrating Web Components with Storybook easier.
 
@@ -28,7 +29,7 @@ There are a number of things that this helper library does to provide developers
 3. Provides a template with bindings for attributes, properties, CSS custom properties, and CSS shadow parts.
 4. Provides two-way binding for controls and attributes in the template to help keep control values in sync with the component
 
-<div style="text-align:center; margin-top: 24px;">
+<div class="center">
   <a href="https://stackblitz.com/github/break-stuff/wc-storybook-helpers/tree/main/demo/sandbox">
     <img
       alt="Open in StackBlitz"
@@ -39,10 +40,16 @@ There are a number of things that this helper library does to provide developers
 
 ## Before You Install
 
-1. Follow the installation steps in the [Storybook docs](https://storybook.js.org/docs/web-components/get-started/install)
+1. If you don't already have it installed, follow the installation steps in the [Storybook docs](https://storybook.js.org/docs/web-components/get-started/install) for web components
+
+```bash
+npm create storybook@latest
+```
+
 2. Load your custom elements manifest into Storybook in the `.storybook/preview.js` file:
 
 ```js
+// .storybook/preview.js
 import { setCustomElementsManifest } from "@storybook/web-components";
 import manifest from "./path/to/custom-elements.json" with { type: "json" };
 
@@ -63,37 +70,41 @@ export const parameters = {
 
 ## Installation
 
+Now that you have Storybook installed, you can install the helpers:
+
 ```bash
 npm i -D @wc-toolkit/storybook-helpers
 ```
 
+Next, if you have [global configurations](#global-configurations), set those in your Storybook config in the `.storybook/preview.js` file:
+
+```ts
+// preview.js
+import { setStorybookHelpersConfig, type Options } from "@wc-toolbox/storybook-helpers";
+
+const options: Options = {...}
+
+setStorybookHelpersConfig(options);
+```
+
 ## Setup
 
-Import the storybook helpers into your story:
+Import the storybook helpers into your story and get the appropriate helpers by passing your element's tag name into the Storybook helper function. 
+the function will return the helper data you can assign to the Storybook `meta` object.
 
-```js
-// my-element.stories.ts
-import { getStorybookHelpers } from "@wc-toolkit/storybook-helpers";
-```
-
-Pass your element's tag name into the Storybook helper function.
-
-```js
-// my-element.stories.ts
-const { events, args, argTypes, template } = getStorybookHelpers("my-element");
-```
-
-Add the `argTypes` and `events` to your story config:
-
-```js
+```ts
 // my-element.stories.ts
 import type { Meta, StoryObj } from "@storybook/web-components";
+import { getStorybookHelpers } from "@wc-toolkit/storybook-helpers";
+
+const { events, args, argTypes, template } = getStorybookHelpers("my-element");
 
 const meta: Meta<MyElement> = {
   title: "Components/My Element",
   component: "my-element",
   args,
   argTypes,
+  render: (args) => template(args)
   parameters: {
     actions: {
       handles: events,
@@ -103,7 +114,19 @@ const meta: Meta<MyElement> = {
 export default meta;
 ```
 
-Add the template to your story's template and pass in the story `args` into the `template` function (this is an optional parameter, but required for arguments to function properly):
+The function returns the following:
+- `events`: an array of events that will be captured in the actions tab
+- `args`: this provides the default values for the component `args`
+- `argTypes`: an object tha configures the controls for the component based on the data from the Custom Elements Manifest
+- `template`: a function that will return a template for the component as well as provide two-way data binding for the component's API and the Storybook controls
+
+### Using the `template` Helper
+
+The `template` helper is completely optional, but provides a great deal of functionality including API mapping of args and two-way data binding for controls.
+
+To add the template to your story, use and arrow function to pass the story's `args` (these are the values defined in the story's `args` API and the values from the controls) to the `template` function (this is an optional parameter, but required for arguments to function properly):
+
+You can add this globally in the story's `meta` object and to the `render` property of the individual story's object.
 
 ```ts
 // my-element.stories.ts
@@ -120,25 +143,25 @@ export const Default: Story = {
 };
 ```
 
-## `argTypes`
+### `argTypes`
 
 Based on the data in the custom elements manifest, the helpers will apply appropriate descriptions and control types to your arguments.
 
-### Control Types
+#### Control Types
 
 The default control types are not always the most helpful. The helper will use your types try to identify the appropriate input and options for your control.
 
 For example if your component has an attribute called `variant` with predefined values, the helper will convert it to a select that is pre-populated with the appropriate values and the default value selected.
 
-![screenshot of storybook control panel with a select input expanded displaying options](https://github.com/break-stuff/wc-storybook-helpers/blob/main/demo/img/variants.png?raw=true)
+![screenshot of storybook control panel with a select input expanded displaying options](../../../assets/storybook/control_types.png)
 
-### Name-Spaced Controls
+#### Name-Spaced Controls
 
 One of the challenges with the default implementation is that if there are multiple properties with the same name, they will be overridden. For example, if there is an attribute named `label` as well as a slot named `label` only one will display. In order to ensure every argument is displayed properly, CSS Shadow Part and Slot arguments will be suffixed with `-part`, and `-slot` respectively. CSS Custom Properties don't receive one because they already have a unique property value and attributes and properties will rely on the camel-cased property name.
 
 The reference name will be documented with the control's description.
 
-![screenshot of storybook control panel with arrow pointing to the "arg ref" label](https://github.com/break-stuff/wc-storybook-helpers/blob/main/demo/img/arg-ref.png?raw=true)
+![screenshot of storybook control panel with arrow pointing to the "arg ref" label](../../../assets/storybook/arg_ref.png)
 
 That reference can then be used to bind default values to the template.
 
@@ -152,7 +175,7 @@ export const Default: Story = {
 };
 ```
 
-### Deprecated Controls
+#### Deprecated Controls
 
 If you use the `@deprecated` tag in your jsDoc descriptions, those will also display in the description.
 
@@ -166,7 +189,7 @@ If you use the `@deprecated` tag in your jsDoc descriptions, those will also dis
 oldDocsHint = "Click on the Vite and Lit logos to learn more";
 ```
 
-![screenshot of storybook control panel with "deprecated" label in the description](https://github.com/break-stuff/wc-storybook-helpers/blob/main/demo/img/deprecated.png?raw=true)
+![screenshot of storybook control panel with "deprecated" label in the description](../../../assets/storybook/deprecated.png)
 
 ### Overriding Controls
 
@@ -262,7 +285,7 @@ Templates take 2 arguments - story arguments and slot data. You can use the cont
 
 ```ts
 // my-element.stories.ts
-export const Default: Story = {
+export const SlottedContent: Story = {
   render: (args) => template(
     args,
     html`
@@ -284,7 +307,7 @@ Component templates can be interpolated into a story's template with additional 
 
 ```ts
 // my-element.stories.ts
-export const Default: Story = {
+export const WithParentFormElement: Story = {
   render: (args) => html`
   <form>
     ${template(
@@ -309,7 +332,7 @@ If you have enabled the [`setComponentVariable`](#add-component-variable) option
 
 ```ts
 // my-element.stories.ts
-export const Default: Story = {
+export const WithSomeCustomLogic: Story = {
   render: (args) => html`
     ${template(
       args,
@@ -338,7 +361,7 @@ export const Default: Story = {
 
 If you are using the `template`, using slots form the controls panel is fairly straight forward. The input is already wired up to the appropriate slot and so rich content can be added directly to the input with no additional set-up required.
 
-![screenshot of storybook control panel with a select input expanded displaying options](https://github.com/break-stuff/wc-storybook-helpers/blob/main/demo/img/slots.png?raw=true)
+![screenshot of storybook control panel with a select input expanded displaying options](../../../assets/storybook/slots.png)
 
 ### Using CSS Shadow Parts and States Controls
 
@@ -346,7 +369,7 @@ Like the slot controls, the `template` makes working with CSS Shadow Parts and c
 The template is pre-configured with the appropriate code for styling to the component's parts and states. 
 You can simply apply the styles directly to the control input.
 
-![screenshot of storybook control panel with a select input expanded displaying options](https://github.com/break-stuff/wc-storybook-helpers/blob/main/demo/img/parts.png?raw=true)
+![screenshot of storybook control panel with a select input expanded displaying options](../../../assets/storybook/css_parts.png)
 
 ## Global Configuration
 
@@ -420,6 +443,16 @@ If an `arg` value matches the default value, it will not be added to the compone
 
 ```ts
 setStorybookHelpersConfig({ renderDefaultValues: true });
+```
+
+### Category Order
+The order of the component's API categories in the controls panel can be configured using the `categoryOrder` option. 
+The order is defined by the array of category names.
+
+<Aside>If a category is not included in the array, that section will not be included in the controls.</Aside>
+
+```ts
+setStorybookHelpersConfig({ categoryOrder: ["cssProps", "cssStates", "attributes"] });
 ```
 
 ## Story Configuration
