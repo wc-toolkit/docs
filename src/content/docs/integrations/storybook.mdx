@@ -40,13 +40,15 @@ There are a number of things that this helper library does to provide developers
 
 ## Before You Install
 
-1. If you don't already have it installed, follow the installation steps in the [Storybook docs](https://storybook.js.org/docs/web-components/get-started/install) for web components
+1. If you're not already, you will need to generate a [Custom Elements Manifest](https://dev.to/stuffbreaker/you-should-be-shipping-a-manifest-with-your-web-components-2da0) for your project. 
+
+2. If you don't already have it installed, follow the installation steps in the [Storybook docs](https://storybook.js.org/docs/web-components/get-started/install) for web components
 
 ```bash
 npm create storybook@latest
 ```
 
-2. Load your custom elements manifest into Storybook in the `.storybook/preview.js` file:
+3. Load your custom elements manifest into Storybook in the `.storybook/preview.js` file:
 
 ```js
 // .storybook/preview.js
@@ -56,7 +58,7 @@ import manifest from "./path/to/custom-elements.json" with { type: "json" };
 setCustomElementsManifest(manifest);
 ```
 
-3. Add the expanded controls to your config in the `.storybook/preview.js` file:
+4. Add the expanded controls to your config in the `.storybook/preview.js` file:
 
 ```js
 export const parameters = {
