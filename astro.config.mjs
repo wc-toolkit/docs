@@ -42,9 +42,15 @@ export default defineConfig({
           slug: "getting-started",
         },
         {
+          label: "Adoption",
+          items: [
+            { label: "Overview", slug: "adoption/overview" },
+            { label: "Lazy Loader", slug: "adoption/lazy-loader" },
+          ],
+        },
+        {
           label: "CEM Utilities",
           items: [
-            // Each item here is one entry in the navigation menu.
             { label: "Overview", slug: "cem-utilities/overview" },
             { label: "CEM Utilities", slug: "cem-utilities/cem-utils" },
             { label: "Deep Merge", slug: "cem-utilities/deep-merge" },
@@ -56,7 +62,6 @@ export default defineConfig({
         {
           label: "Documentation",
           items: [
-            // Each item here is one entry in the navigation menu.
             { label: "Overview", slug: "documentation/overview" },
 						{ label: 'CEM Inheritance', slug: 'documentation/cem-inheritance' },
             { label: "JSDoc Tags", slug: "documentation/jsdoc-tags" },
@@ -66,22 +71,10 @@ export default defineConfig({
         {
           label: "Integrations",
           items: [
-            // Each item here is one entry in the navigation menu.
             { label: "Overview", slug: "integrations/overview" },
             { label: "Storybook", slug: "integrations/storybook" },
           ],
         },
-        // {
-        // 	label: 'Guides',
-        // 	items: [
-        // 		// Each item here is one entry in the navigation menu.
-        // 		{ label: 'Example Guide', slug: 'guides/example' },
-        // 	],
-        // },
-        // {
-        // 	label: 'Reference',
-        // 	autogenerate: { directory: 'reference' },
-        // },
       ],
       customCss: ["./src/styles/custom-styles.css"],
     }),

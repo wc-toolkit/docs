@@ -1,0 +1,327 @@
+---
+title: Lazy Loader
+description: A tool for generating an entry point for lazy-loading custom elements/web components.
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_lazy-loader.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_lazy-loader.png
+hero:
+  title: 'Lazy Loader'
+  tagline: Create a single entry point to lazy-load your web components as needed!
+  image:
+    alt: A workbench with tools, html, css, javascript, and download logo
+    file: ../../../assets/wc-toolkit_lazy-loader.png
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Create a single entry point to lazy-load your custom elements/web components as needed!
+
+As components get loaded the component configurations get removed from the list and when all of the components have been loaded, the loader will shut off to help improve performance.
+
+```html
+<body>
+  <my-button>Button</my-button>
+  <my-checkbox></my-checkbox>
+
+  <!-- the lazy-loader will only load what gets used -->
+  <script type="module" src="path/to/my/loader.js" />
+</body>
+```
+
+## Usage
+
+This package includes two ways to generate the custom data config file:
+
+1. calling a function in your build pipeline
+2. as a plugin for the [Custom Element Manifest Analyzer](https://custom-elements-manifest.open-wc.org/)
+
+### Install
+
+```bash
+npm i -D @wc-toolkit/lazy-loader
+```
+
+### Build Pipeline
+
+```js
+// generate-lazy-loader.ts
+import { generateLazyLoader, type LazyLoaderOptions } from "@wc-toolkit/lazy-loader";
+import manifest from "./path/to/custom-elements.json" with { type: 'json' };
+
+const options: LazyLoaderOptions = {
+  importPathTemplate: (name, tagName) =>
+    `./dist/components/${name}/${tagName}.js`,
+  ...
+};
+
+generateLazyLoader(manifest, options);
+```
+
+### CEM Analyzer
+
+#### Set-up
+
+Ensure the following steps have been taken in your component library prior to using this plugin:
+
+- Install and set up the [Custom Elements Manifest Analyzer](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/)
+- Create a [config file](https://custom-elements-manifest.open-wc.org/analyzer/config/#config-file)
+
+#### Add the Plugin
+
+```js
+// custom-elements-manifest.config.js
+
+import { lazyLoaderPlugin } from "@wc-toolkit/lazy-loader";
+
+const options = {
+  importPathTemplate: (name, tagName) =>
+    `./dist/components/${name}/${tagName}.js`,
+  ...
+};
+
+export default {
+  plugins: [
+    lazyLoaderPlugin(options)
+  ],
+};
+```
+
+Once you run the analyzer, you should see a new file (`loader.js` by default) that users can import to load your components!
+
+```js
+<script type="module" src="https://my-cdn.com/loader.js"></script>;
+
+// or
+
+import "my-project/loader.js";
+```
+
+<div class="center">
+  <a href="https://stackblitz.com/edit/vitejs-vite-rtmxxnnn?file=README.md" target="_blank">
+    <img
+      alt="Open in StackBlitz"
+      src="https://developer.stackblitz.com/img/open_in_stackblitz.svg"
+    />
+  </a>
+</div>
+
+## Configuration
+
+The configuration has the following parameters:
+
+```ts
+type LazyLoaderOptions = {
+  /** The template for creating the component's import path */
+  importPathTemplate?: (name: string, tagName: string) => string;
+  /** Path to output directory */
+  outdir?: string;
+  /** The of the loader file */
+  fileName?: string;
+  /** Class names of any components you would like to exclude from the custom data */
+  exclude?: string[];
+  /** Enables logging during the component loading process */
+  debug?: boolean;
+  /** Adds a prefix to tag names */
+  prefix?: string;
+  /** Adds a suffix to tag names */
+  suffix?: string;
+  /** Additional components that may not be included in your Custom Elements Manifest */
+  additionalComponents?: ComponentConfig;
+  /** Component tag names that you would like to eager-load */
+  eagerLoad?: string[];
+  /** Prevents plugin from executing */
+  skip?: boolean;
+  /** A function to return a list of tag names used internally by your component */
+  getDependencies?: (component: Component) => string[];
+  /** Adds logic to delay content display until components have loaded */
+  reducedFOUC?: boolean;
+  /** The amount of time the UI will wait for components to load before displaying UI */
+  loadTimeout?: number;
+  /** The class named used to identify when the components have all loaded */
+  loadedClass?: string;
+};
+```
+
+## Import Path Template
+
+This option is _required_ because it tells the loader where to find you component's module to load from. 
+This should reference the path where you component is defined in the browser (using `customElements.define()` or some other mechanism). 
+This path can also reference a resource outside of the project like a CDN.
+
+Remember that this path is relative to the location of this file. 
+For example, if this file is generated at the root of your project and the component definitions are in the `dist/components` directory could reference them like this:
+
+```ts
+{
+  importPathTemplate: (name, tagName) =>
+    `./dist/components/${name}/${tagName}.definition.js`;
+}
+```
+
+This would generate imports for each of the components like:
+
+```
+'./dist/components/MyButton/my-button.definition.js'
+'./dist/components/MyBadge/my-badge.definition.js'
+'./dist/components/MyCard/my-card.definition.js'
+...
+```
+
+## Debugging
+
+If you set the `debug` option to true, this will add additional logging during the loading process to help you identify any issues that are happening during the loading process. 
+Additional logs include:
+
+- when a tag name is already registered
+- when there is an undefined component, but it is not in your list of components
+- when a component is successfully loaded
+- when a component fails to load (this one is always logged)
+
+## Adding Additional Components
+
+If you are using additional components in your project that are not included in your Custom Elements Manifest (ie - third-party components), you can add them to your loader using the `additionalComponents` option. 
+Here is an example that is importing components from [Shoelace](https://shoelace.style/) that are also being used in my project.
+
+```ts
+{
+  additionalComponents: {
+    "sl-button": {
+      importPath:
+        "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/components/button/button.js",
+    },
+    "sl-icon": {
+      importPath:
+        "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/components/icon/icon.js",
+    },
+    "sl-input": {
+      importPath:
+        "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/components/input/input.js",
+    },
+  }
+}
+```
+
+The component configurations use the following type:
+
+```ts
+type ComponentConfig = {
+  /** The key is the component's tag-name (in lower-case) */
+  [key: string]: {
+    /** The path to the module where the component is defined */
+    importPath: string;
+    /** The tag name of any components used within this component that will be registered at the same time */
+    dependencies?: string[];
+  };
+};
+```
+
+## Adding Components
+
+This option allows you to add additional custom elements to watch for that may not have been included in the original build of the loader. 
+This is similar to the `additionalComponents` option, but it adds them at runtime.
+
+## Setting the Root Element
+
+The loader will observe the document body for any new components, but if you know your components will only be used in a subset of the DOM, you can specify an element to observe the children in to improve performance.
+
+```ts
+{
+  rootElement: document.querySelector("#my-app");
+}
+```
+
+## Eager-Loading Components
+
+There may be instances where you want certain components loaded as soon as possible. Both the generator and runtime configs accept an `eagerLoad` option. This is a string array of the tag names you would like to eager-load (load immediately) from your list of components.
+
+## Dependencies
+
+Dependencies are components that are used within other components. 
+They are identified in the `dependencies` property in the final output.
+
+These are used to help clean up the component list once they have been loaded.
+This will improve performance and help the loader to shut off once all of the components have been loaded.
+
+If you have a `dependencies` property that in the Custom Elements Manifest that is a string array or was created using a tool like the [Custom JSDoc Tags plugin](/documentation/jsdoc-tags), then these will be automatically loaded for you.
+If you are using a custom method to identify the dependencies, you can use the `getDependencies` function to return a list of tag names used internally by your component.
+
+```ts
+{
+  getDependencies: (component) => {
+    // replace this with your own logic
+    return component.myDependencies.map((dep) => dep.tagName);
+  }
+}
+```
+
+<Aside> This is not required, but it will help the loader to clean up the component list once they have been loaded. </Aside>
+
+## Scoping Components
+
+If you are using custom tag names with either a prefix or suffix to prevent tag name collisions, you can configure the lazy-loader watch for your scoped tags. 
+Both the build and runtime configurations accept `prefix` and `suffix` options to update the component list with your specified tag names.
+
+For example, setting the `prefix` option to `prefix_` will update the tag list so the loader will watch for `prefix_my-element`.
+
+<Aside>This will not handle the component scoping for you, but update the loader to look for your scoped components.</Aside>
+
+## Reduced FOUC
+
+When lazy-loading components, there may be a flash of unstyled content (FOUC) when the components are being loaded.
+To help reduce this, you can set the `reducedFOUC` option to true. This will add a class to the body that will hide the content until the components have been loaded.
+
+If this is enabled, add the following CSS to your project to hide the content until the components have been loaded:
+
+```html
+<style>
+  body:not(.wc-loaded) {
+    opacity: 0;
+  }
+</style>
+```
+
+### Load Timeout
+
+The `loadTimeout` option allows you to set a timeout for how long the loader will wait for components to load before displaying the UI.
+This is useful if you have components that are very slow to load or fail to load completely.
+
+### Loaded Class
+
+The `loadedClass` option allows you to specify class name that will be added to the body once all of the components have been loaded.
+If you have specified a custom class name, you will need to update the CSS to use that class name instead of `wc-loaded`.
+
+```html
+<style>
+  body:not(.all-components-loaded) {
+    opacity: 0;
+  }
+</style>
+```
+
+## Runtime Configuration
+
+If you are using the loader post-build and need to add configurations, you can modify some of the options using the `updateConfig` function. The function takes in a config parameter that has the following options:
+
+```ts
+/** Configuration options for the `updateConfig` function */
+type RuntimeConfiguration = {
+  /** Additional components that may not be included in your Custom Elements Manifest */
+  components?: ComponentConfig;
+  /** The root element to observe for your custom elements */
+  rootElement?: Element;
+  /** Component tag names that you would like to eager-load */
+  eagerLoad: string[];
+  /** Adds a prefix to the component tag names for scoping components */
+  prefix: string;
+  /** Adds a suffix to the component tag names for scoping components */
+  suffix: string;
+};
+```
+
+<Aside> The `updateConfig` function is async, so you can `await` it if you want to ensure load order. </Aside>
