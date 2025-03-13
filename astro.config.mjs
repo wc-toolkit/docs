@@ -65,6 +65,7 @@ export default defineConfig({
             { label: "Overview", slug: "documentation/overview" },
 						{ label: 'CEM Inheritance', slug: 'documentation/cem-inheritance' },
             { label: "JSDoc Tags", slug: "documentation/jsdoc-tags" },
+            { label: "Module Path Resolver", slug: "documentation/module-path-resolver" },
             { label: "Type Parser", slug: "documentation/type-parser" },
           ],
         },
