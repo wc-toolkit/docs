@@ -42,6 +42,25 @@ This is a generic function, so if you have defined custom fields that you would 
 const components = getAllComponents<MyCustomComponentType>(manifest);
 ```
 
+## Component Type
+
+All of the component functions return a `Component` object. 
+This is a custom type that extends the standard CEM `CustomElement` type to include additional properties. 
+These properties are located elsewhere in the CEM, but we have added them to the `Component` object for your convenience.
+
+```ts
+type Component = cem.CustomElement & Record<string, unknown> & {
+  /** Path to the component's source module */
+  modulePath?: string;
+  /** Path to the component's definition */
+  definitionPath?: string;
+  /** Path to the component's type definition (if different than the source module) */
+  typeDefinitionPath?: string;
+}
+```
+
+<Aside>If you're not already, it's highly recommended that you use a tool like the [Module Path Resolver](/documentation/module-path-resolver/) to ensure this content is accurate in your Custom Elements Manifest.</Aside>
+
 ## Get Component By Tag
 
 The `getComponentByTag` function returns a single component from the CEM by its tag name.
@@ -293,4 +312,21 @@ A list of excluded types can also be passed in as a parameter.
 
 ```ts
 const customEventDetailTypes = getCustomEventDetailTypes(component, ['Type1', 'Type2']);
+```
+
+## Get All Mixins
+
+The `getAllMixins` function returns an array of all the mixins in the CEM.
+
+```ts
+import { getAllMixins } from '@wc-toolkit/cem-utilities';
+import manifest from './path/to/your/manifest.json' with { type: 'json' };
+
+const components = getAllMixins(manifest);
+```
+
+This is a generic function, so if you have defined custom fields that you would like to strongly type, you can pass in a type parameter.
+
+```ts
+const mixins = getAllMixins<MyCustomMixinType>(manifest);
 ```
