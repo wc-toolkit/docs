@@ -1,0 +1,238 @@
+---
+title: Custom CEM Types
+description: Types to make working with custom data in the CEM easier
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_cem-validator.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_cem-validator.png
+hero:
+  title: 'CEM Validator'
+  tagline: Validate that your project is set up correctly for teams to use your components
+  image:
+    alt: A workbench with tools, html, css, javascript, and check logos
+    file: ../../../assets/wc-toolkit_cem-validator.png
+
+---
+
+This tool is designed to validate key aspects of your project to ensure accurate documentation and proper integration with tools.
+
+You may not be using all of the features identified in these test scenarios, but they are in place to also raise awareness to features that may help your implementation.
+
+
+## Installation
+
+To install the package, use the following command:
+
+```bash
+npm install -D @wc-toolkit/cem-validator
+```
+
+## Usage
+
+This package includes two ways to update the Custom Elements Manifest:
+
+1. using it in a script
+2. as a plugin for the [Custom Element Manifest Analyzer](https://custom-elements-manifest.open-wc.org/).
+
+### Script
+
+```ts
+// my-script.ts
+
+import { validateCem, type CemValidatorOptions } from "@wc-toolkit/cem-validator";
+import manifest from "./path/to/custom-elements.json" with { type: 'json' };
+
+const options: CemValidatorOptions = {...};
+
+validateCem(manifest, options);
+```
+
+### CEM Analyzer
+
+The plugin can be added to the [Custom Elements Manifest Analyzer configuration file](https://custom-elements-manifest.open-wc.org/analyzer/config/#config-file).
+
+```js
+// custom-elements-manifest.config.js
+
+import { cemValidatorPlugin } from "@wc-toolkit/cem-validator";
+
+const options = {...};
+
+export default {
+  plugins: [
+    cemValidatorPlugin(options)
+  ],
+};
+```
+
+## Configuration
+
+```ts
+type CemValidatorOptions = {
+  /** The path to the `package.json` file */
+  packageJsonPath?: string;
+  /** Custom Elements Manifest file name */
+  cemFileName?: string;
+  /** This will log errors rather throw an exception */
+  logErrors?: boolean;
+  /** Enables logging during the component loading process */
+  debug?: boolean;
+  /** Prevents plugin from executing */
+  skip?: boolean;
+  /** Rule configurations */
+  rules?: Rules;
+};
+
+/** The severity level for each rule */
+type Severity = "off" | "warning" | "error";
+
+type Rules = {
+  /** Checks if the package.json file is appropriately configured */
+  packageJson?: {
+    /** Is `type` property set to "module" */
+    moduleType?: Severity;
+    /** Is `main` property set with a valid file path */
+    main?: Severity;
+    /** Is `module` property set with a valid file path */
+    module?: Severity;
+    /** Is `types` property set with a valid file path */
+    types?: Severity;
+    /** Does the package have a `exports` property configured */
+    exports?: Severity;
+    /** Is the `customElements` property properly configured */
+    customElementsProperty?: Severity;
+    /** Is the Custom Elements Manifest included in the published package */
+    publishedCem?: Severity;
+  }
+  /** Checks if the Custom Elements Manifest is valid */
+  manifest?: {
+    /** Is the manifest using the latest schema version */
+    schemaVersion?: Severity;
+    /** Does the component have a valid module path */
+    modulePath?: Severity;
+    /** Does the component have a valid definition path */
+    definitionPath?: Severity;
+    /** Does the element have a valid type definition path */
+    typeDefinitionPath?: Severity;
+    /** Does the component export all necessary types */
+    exportTypes?: Severity;
+    /** Does the component have a tag name defined */
+    tagName?: Severity;
+  }
+};
+```
+### Options
+
+- `packageJsonPath`: The path to the `package.json` file. This will look for the `package.json` file in the specified path. If not provided, it will look for the `package.json` file in the current working directory.
+- `cemFileName`: The name of the Custom Elements Manifest file. This can be used if the file is not named `custom-elements.json`.
+- `logErrors`: If set to `true`, errors will be logged instead of throwing an exception. This is useful for debugging.
+- `debug`: If set to `true`, debug information will be logged during the component loading process. This is useful for debugging.
+- `skip`: If set to `true`, the plugin will not execute. For performance reasons, it might be useful to only enable this during build and not watching during development.
+- `rules`: An object containing the rules to validate. Each rule can be set to `off`, `warning`, or `error`. The default is `error`.
+
+## Rules
+
+Each of the rules can be configured to be `off`, `warning`, or `error`.
+
+- `off`: The rule is disabled.
+- `warning`: The rule will log a warning message if it fails.
+- `error`: The validator will throw an exception for all failed tests.
+
+### Package.json Rules
+
+#### `moduleType`
+
+Checks if the `package.json` file has the `type` property set to `module`. 
+This is important for ensuring that the package is treated as an ES module.
+
+More information about this rule can be found [here](https://nodejs.org/api/packages.html#type).
+
+#### `main`
+
+Checks if the `package.json` file has the `main` property set with a valid file path. 
+
+More information about this rule can be found [here](https://nodejs.org/api/packages.html#main).
+
+#### `module`
+
+Checks if the `package.json` file has the `module` property set with a valid file path. 
+This is important to ensure the package can be imported correctly for projects using ES module syntax.
+
+More information about this rule can be found [here](https://nodejs.org/api/packages.html#module).
+
+#### `types`
+
+Checks if the `package.json` file has the `types` property set with a valid file path. 
+This is important for ensuring that the types can be appropriately referenced.
+
+More information about this rule can be found [here](https://nodejs.org/api/packages.html#community-conditions-definitions).
+
+#### `exports`
+
+Checks if the `package.json` file has the `exports` property configured. This is important for ensuring that the package can be imported correctly with type definitions.
+
+More information about this rule can be found [here](https://nodejs.org/api/packages.html#exports).
+
+#### `customElementsProperty`
+
+Checks if the `package.json` file has the `customElements` property configured. 
+This makes it easier for tools to find the manifest.
+
+More information about this rule can be found [here](https://github.com/webcomponents/custom-elements-manifest?tab=readme-ov-file#referencing-manifests-from-npm-packages).
+
+#### `publishedCem`
+
+Checks if the Custom Elements Manifest is included in the final package.
+This is important for ensuring that the manifest is available for tools to use.
+If you are not specifying the `files` property in your `package.json`, it should be included by default.
+
+More information about this rule can be found [here](https://docs.npmjs.com/cli/v10/configuring-npm/package-json?v=true#files).
+
+### Manifest Rules
+
+#### `schemaVersion`
+
+Checks if the `custom-elements.json` file has the `schemaVersion` property set to the latest version. 
+This is important for ensuring that the manifest is using the latest schema version.
+
+More information about this rule can be found [here](https://github.com/webcomponents/custom-elements-manifest?tab=readme-ov-file#schema-versioning).
+
+#### `modulePath`
+
+Checks if the `custom-elements.json` file has the path to the file where the component logic exists. 
+This is important for ensuring that tools can locate and import your components correctly.
+
+For help updating this, check out the [Module Path Resolver package](/documentation/module-path-resolver/).
+
+#### `definitionPath`
+
+Checks if the `custom-elements.json` file has the path to the file where the component is defined (`customElements.define(...)`). 
+This is important for ensuring that tools can locate and import the component definition correctly.
+
+For help updating this, check out the [Module Path Resolver package](/documentation/module-path-resolver/).
+
+#### `typeDefinitionPath`
+
+Checks if the `custom-elements.json` file has the path to the file where the component type definitions exist.
+This will only be tested if the `typeDefinitionPath` is set in the `custom-elements.json` file for a module.
+
+This is only relevant if you types are not co-located with your components of if your types follow a different naming conventions from your component modules.
+
+For help updating this, check out the [Module Path Resolver package](/documentation/module-path-resolver/).
+
+#### `exportTypes`
+
+Checks if the types used by your component's public APIs are properly exported.
+
+#### `tagName`
+
+Checks if the component has a tag name defined.
+This is important as it is often used to identify components in the CEM.
+If they are not defined, you can add one by using the `@tag` or `@tagName` JSDoc tags to the component's class JSDoc.
+
+More information about this rule can be found [here](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/#supported-jsdoc).

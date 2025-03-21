@@ -52,20 +52,32 @@ export default defineConfig({
           label: "CEM Utilities",
           items: [
             { label: "Overview", slug: "cem-utilities/overview" },
-            { label: "CEM Utilities", slug: "cem-utilities/cem-utils" },
-            { label: "Deep Merge", slug: "cem-utilities/deep-merge" },
-            { label: "Descriptions", slug: "cem-utilities/descriptions" },
-            { label: "String Utilities", slug: "cem-utilities/string-utils" },
-            { label: "Custom CEM Types", slug: "cem-utilities/types" },
+            { label: "CEM Validator", slug: "cem-utilities/cem-validator" },
+            {
+              label: "Helpers",
+              items: [
+                { label: "CEM Utilities", slug: "cem-utilities/cem-utils" },
+                { label: "Deep Merge", slug: "cem-utilities/deep-merge" },
+                { label: "Descriptions", slug: "cem-utilities/descriptions" },
+                {
+                  label: "String Utilities",
+                  slug: "cem-utilities/string-utils",
+                },
+                { label: "Custom CEM Types", slug: "cem-utilities/types" },
+              ],
+            },
           ],
         },
         {
           label: "Documentation",
           items: [
             { label: "Overview", slug: "documentation/overview" },
-						{ label: 'CEM Inheritance', slug: 'documentation/cem-inheritance' },
+            { label: "CEM Inheritance", slug: "documentation/cem-inheritance" },
             { label: "JSDoc Tags", slug: "documentation/jsdoc-tags" },
-            { label: "Module Path Resolver", slug: "documentation/module-path-resolver" },
+            {
+              label: "Module Path Resolver",
+              slug: "documentation/module-path-resolver",
+            },
             { label: "Type Parser", slug: "documentation/type-parser" },
           ],
         },
