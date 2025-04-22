@@ -1,0 +1,433 @@
+---
+title: VS Code Integration
+description: Tools for integrating web components/custom elements into VS Code.
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_storybook.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_storybook.png
+hero:
+  title: 'VS Code Integration'
+  tagline: Tools for integrating web components/custom elements into VS Code
+  image:
+    alt: A workbench with tools, html, css, javascript, and VS Code logo
+    file: ../../../assets/wc-toolkit_storybook.png
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+# WC Toolkit VS Code Integration
+
+This package generates custom data config files for [VS Code](https://code.visualstudio.com/) using the Custom Element Manifest.
+
+This config enables VS Code to display autocomplete and contextual information about your custom elements.
+
+![demo of autocomplete features for custom elements in vs code](https://github.com/break-stuff/cem-plugin-vs-code-custom-data-generator/blob/main/demo/images/demo.gif?raw=true)
+
+## Usage
+
+This package includes two ways to generate the custom data config file:
+
+1. calling a function in your build pipeline
+2. as a plugin for the [Custom Element Manifest Analyzer](https://custom-elements-manifest.open-wc.org/)
+
+### Install
+
+```bash
+npm i -D @wc-toolkit/vs-code
+```
+
+### Build Pipeline
+
+```js
+import { generateVsCodeDataFiles } from "@wc-toolkit/vs-code";
+import manifest from "./path/to/custom-elements.json";
+
+const options = {...};
+
+generateVsCodeDataFiles(manifest, options);
+```
+
+### CEM Analyzer
+
+#### Set-up
+
+Ensure the following steps have been taken in your component library prior to using this plugin:
+
+- Install and set up the [Custom Elements Manifest Analyzer](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/)
+- Create a [config file](https://custom-elements-manifest.open-wc.org/analyzer/config/#config-file)
+
+#### Import
+
+```js
+// custom-elements-manifest.config.js
+
+import { vsCodePlugin } from "@wc-toolkit/vs-code";
+
+const options = {...};
+
+export default {
+  plugins: [
+    vsCodePlugin(options)
+  ],
+};
+```
+
+## Implementation
+
+If you don't have it already, add a VS Code settings folder and file at the root of your project - `.vscode/settings.json`. 
+Then add or append the following code:
+
+```json
+{
+  "html.customData": ["./vscode.html-custom-data.json"],
+  "css.customData": ["./vscode.css-custom-data.json"]
+}
+```
+
+If this is included in your `npm` package, the VS Code configuration will look something like this:
+
+```json
+{
+  "html.customData": [
+    "./node_modules/my-component-library/vscode.html-custom-data.json"
+  ],
+  "css.customData": [
+    "./node_modules/my-component-library/vscode.css-custom-data.json"
+  ]
+}
+```
+
+**_Note:_** The path is relative to the root of the project, not the settings file.
+
+Once it has been added, you will need to restart VS Code in order for it to register the new components. 
+After it has been restarted, you should see autocomplete information for your custom elements!
+
+## Configuration
+
+The configuration has the following optional parameters:
+
+```ts
+type VsCodeOptions = {
+  /** Name of the file with you component's custom HTML data */
+  htmlFileName?: string | null;
+  /** Name of the file with you component's custom CSS data */
+  cssFileName?: string | null;
+  /** Path to output directory */
+  outdir?: string;
+  /** Configuration for the components description in the editor pop-up */
+  descriptionConfig?: ComponentDescriptionOptions;
+  /** Creates reusable CSS values for consistency in components */
+  cssSets?: CssSet[];
+  /** Used to create an array of links within the component info bubble */
+  referencesTemplate?: (name: string, tag?: string) => Reference[];
+  /** The property form your CEM component object to display your types */
+  typesSrc?: string;
+  /** Adds a prefix to tag references */
+  prefix?: string;
+  /** Adds a suffix to tag references */
+  suffix?: string;
+  /** Class names of any components you would like to exclude from the custom data */
+  exclude?: string[];
+  /** Shows contextual logs during build */
+  debug?: boolean;
+  /** Prevents plugin from executing */
+  skip?: boolean;
+};
+
+type ComponentDescriptionOptions = {
+  /**
+   * The order in which the documentation for each of the APIs will be rendered
+   * If a key is not provided, it will not be rendered
+   * @default ["attrsAndProps", "events", "slots", "methods", "cssProps", "cssParts", "cssState"]
+   */
+  order?: ApiOrderOption[];
+  /**
+   * The property name of the component description.
+   * If not provided, it will default to the `summary` then to the `description` property.
+   * If you have created a custom description property, you can provide the name here.
+   * @default "description"
+   */
+  descriptionSrc?: "description" | "summary" | (string & {});
+  /**
+   * The options for each component API
+   */
+  apis?: {
+    attributes?: ComponentApiOptions<Attribute>;
+    properties?: ComponentApiOptions<Property>;
+    attrsAndProps?: ComponentApiOptions<Attribute>;
+    propsOnly?: ComponentApiOptions<Property>;
+    events?: ComponentApiOptions<ComponentEvent>;
+    methods?: ComponentApiOptions<Method>;
+    slots?: ComponentApiOptions<Slot>;
+    cssProps?: ComponentApiOptions<CssCustomProperty>;
+    cssParts?: ComponentApiOptions<CssPart>;
+    cssState?: ComponentApiOptions<CssCustomState>;
+  };
+};
+
+/** A generic type for creating customized docs for components APIs */
+type ComponentApiOptions<T = unknown> = {
+  /** The section heading for the API */
+  heading?: string;
+  /** Additional section description for the API */
+  description?: string;
+  /** A template for rendering the API documentation */
+  template?: (api?: T[]) => string;
+};
+
+type CssSet = {
+  name: string;
+  values: CssValue[] | string[];
+};
+
+type CssValue = {
+  name: string;
+  description?: string;
+};
+```
+
+## Example
+
+Here is a basic example of a component configuration using jsDoc:
+
+````ts
+/**
+ *
+ * Radio groups are used to group multiple radio buttons so they function as a single form control.
+ *
+ * Here is the [documentation](https://my-site.com/docs.md).
+ *
+ * Use it like this:
+ * ```html
+ * <radio-group value="2" size="3">
+ *   <span slot="label">My Label</span>
+ *   <radio-button value="1">Option 1</radio-button>
+ *   <radio-button value="2">Option 2</radio-button>
+ *   <radio-button value="3">Option 3</radio-button>
+ * </radio-group>
+ * ```
+ *
+ * @tag radio-group
+ * @tagname radio-group
+ *
+ * @attr {boolean} disabled - Disables the element
+ * @attribute {string} value - The value of the selected radio
+ * @attribute {1,2,3,4} size - This will control the size of radio buttons
+ *
+ * @csspart bar - Styles the bar element
+ *
+ * @slot - add radio buttons to the `default` slot to create options to your radio group
+ * @slot label - placeholder for the radio group label
+ *
+ * @cssprop {--radius-sm|--radius-md|--radius-lg} --border-radius - Controls the color of foo
+ * @cssproperty [--background-color=red] - Controls the color of bar
+ *
+ * @prop {boolean} prop1 - this toggles some unseen feature
+ * @property {number} prop2 - this will adjust the width of the unit
+ *
+ * @fires custom-event - some description for custom-event
+ * @fires {Event} typed-event - some description for typed-event
+ * @event {CustomEvent} typed-custom-event - some description for typed-custom-event
+ *
+ */
+class RadioGroup extends HTMLElement {}
+````
+
+## File Output
+
+The plugin will generate two files in the specified output directory. Here are the default output values used in this package:
+
+- `htmlFileName` - `vscode.html-custom-data.json`
+- `cssFileName` - `vscode.css-custom-data.json`
+- `outdir` - `./`
+
+If you would like to exclude the HTML or CSS output, you can do so by setting the `htmlFileName` or `cssFileName` properties to `null` or `undefined`.
+
+## Tag Mapping
+
+![an example of the jsDoc tags used to create the custom data file](https://github.com/break-stuff/cem-plugin-vs-code-custom-data-generator/blob/main/demo/images/tags.png?raw=true)
+
+| Tag                      | Description                                                                                                                                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@summary` / description | This provides the description for the custom element when autocomplete is used or the element is hovered. If no summary is provided, it will fall back to the `description` if it is available.                                         |
+| `@attr` / `@attribute`   | This will provide descriptions for each attribute. If you use union types in TypeScript or in the description, these will display as autocomplete options. Values can also be defined in the jsDoc using comma or pipe delimited values |
+
+The `@summary` and `@attr` / `@attribute` descriptions have limited markdown support and enable you to style text, create links, and add code snippets.
+
+## Descriptions
+
+### Documentation Order
+
+The `order` configuration allows you to determine the order in which the documentation for each of the APIs will be rendered. 
+If a key is not provided, it will not be rendered, so if you would like to exclude documentation, do exclude the property here.
+
+More information about this can be found [here](/cem-utilities/descriptions/#order).
+
+
+### Description Source
+
+Using the `descriptionSrc` configuration, you can determine the source of the text that gets displayed in the editor autocomplete bubble. This is useful if you want to provide alternate descriptions for your React users.
+
+If no value is provided, the plugin will use the `summary` property and then fall back to the `description` property.
+
+![description section of autocomplete popup from vs code](https://github.com/break-stuff/cem-plugin-vs-code-custom-data-generator/blob/main/demo/images/description.png?raw=true)
+
+**Note:** _Descriptions support multiple lines by breaking the comment up into multiple lines whereas summaries do not and will need to be manually added using `\n`._
+
+````js
+// description example
+
+/**
+ *
+ * Radio groups are used to group multiple radios or radio buttons so they function as a single form control. Here is its [documentation](https://my-docsite.com).
+ *
+ * Use it like this:
+ * ```html
+ * <radio-group value="2" size="3">
+ *   <span slot="label">My Label</span>
+ *   <radio-button value="1">Option 1</radio-button>
+ *   <radio-button value="2">Option 2</radio-button>
+ *   <radio-button value="3">Option 3</radio-button>
+ * </radio-group>
+ * ```
+ *
+ */
+````
+
+````js
+// summary example
+
+/**
+ *
+ * @summary Radios buttons allow users to select a single option from a group. Here is its [documentation](https://my-site.com/documentation).\n\nUse it like this:\n```html\n<radio-button value="1" disabled>Your label</radio-button>\n```
+ *
+ * /
+````
+
+## API Documentation
+
+The API documentation can be configured for each public API using the `apis` configuration.
+This allows you to set the section heading, description, and rendering template for each API.
+
+More information about this can be found [here](/cem-utilities/descriptions/).
+
+## CSS Custom Data
+
+Adding the CSS Custom Data file to your config provides you with autocomplete for your component's CSS custom properties.
+
+These values can be added in your component's jsDoc. The `var()` wrapper will be added automatically if they are prefixed with `--`.
+
+```ts
+/**
+ *
+ * @cssprop {--radius-sm|--radius-md|--radius-lg} --border-radius - Controls the border radius of the component
+ *
+ */
+```
+
+### CSS Sets
+
+You can define reusable CSS values to simplify your efforts and provide greater consistency from one component to another.
+
+First, define your sets in the config. Values can be an object array with a name and optional description or they can be a simple string array.
+
+```js
+const options = {
+  cssSets: [
+    {
+      name: "radiuses",
+      values: [
+        { name: "--radius-sm", description: "2px" },
+        { name: "--radius-md", description: "4px" },
+        { name: "--radius-lg", description: "8px" },
+      ],
+    },
+    {
+      name: "spacing",
+      values: ["2px", "4px", "8px", "12px", "16px"],
+    },
+  ],
+};
+```
+
+Once they are defined, you can reference them in your components jsDoc by prefixing it with `set:` and providing the name of the set.
+
+```ts
+/**
+ *
+ * @cssprop {set:radiuses} --border-radius - Controls the border radius of the component
+ *
+ */
+```
+
+![css custom property autocomplete from vs code](https://github.com/break-stuff/cem-plugin-vs-code-custom-data-generator/blob/main/demo/images/css_autocomplete.gif?raw=true)
+
+### CSS Parts
+
+Developers will also receive autocomplete for defined CSS parts.
+
+```ts
+/**
+ *
+ * @csspart radio-label - Applies custom styles the radio group label
+ *
+ */
+```
+
+![css custom property autocomplete from vs code](https://github.com/break-stuff/cem-plugin-vs-code-custom-data-generator/blob/main/demo/images/css_part.gif?raw=true)
+
+## References
+
+At the bottom of each component info popup there is a place where you can set a list of links. The options provide a hook that will allow you to add your own links to the popup. A popular usage is linking to documentation. This is especially nice if you have versioned documentation, so you provide developers with contextual help by linking them directly to the version of the documentation they are using.
+
+```ts
+const options = {
+  ...
+  referencesTemplate: (name, tag) => [{
+    name: 'Documentation',
+    url: `https://example.com/${version}/components/${tag}`
+  }]
+}
+```
+
+Another capability is adding conditional documentation based on the component.
+
+```ts
+const options = {
+  ...
+  referencesTemplate: (name, tag) => {
+    references = [];
+
+    if(name = 'MyInput') {
+      references.push({
+        name: 'MDN',
+        url: 'https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input'
+      });
+    }
+
+    return references;
+  }
+}
+```
+
+## Custom Types
+
+If you are using alias or named types for your API options, they available options will not display as part of the VS Code autocomplete.
+You can use a tool like the [Type Parser](/documentation/type-parser/) to parse the types and add them to Custom Element Manifest.
+
+If you are providing alternative types, you will need to set the `typesSrc` property in the config to the property name of the type you are using.
+The generator will look for the `parsedType` property in the CEM by default, but if you are using an alternative property name, you override it using the `typesSrc` property.
+
+## Scoping Tags
+
+If your project is scoping components using prefixes or suffixes in the tag name, you can generate a custom data config file using your scoping using the `prefix` or `suffix` option (`prefix: "test_"` => `test_my-element`).
+
+## Generate Your Own Files
+
+If you need to be able tp generate your own files, you can use the `getVsCodeHtmlCustomData(manifest, options)` and `getVsCodeCssCustomData(manifest, options)` methods. 
+These methods will return the HTML and CSS config data and you can choose where and how the file gets written.
