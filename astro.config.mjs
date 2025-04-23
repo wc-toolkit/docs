@@ -45,16 +45,18 @@ export default defineConfig({
           label: "Adoption",
           items: [
             { label: "Overview", slug: "adoption/overview" },
+            { label: "Changelog", slug: "adoption/changelog" },
             { label: "Lazy Loader", slug: "adoption/lazy-loader" },
           ],
         },
         {
-          label: "CEM Utilities",
+          label: "CEM Tools",
           items: [
             { label: "Overview", slug: "cem-utilities/overview" },
             { label: "CEM Validator", slug: "cem-utilities/cem-validator" },
             {
               label: "Helpers",
+              collapsed: true,
               items: [
                 { label: "CEM Utilities", slug: "cem-utilities/cem-utils" },
                 { label: "Deep Merge", slug: "cem-utilities/deep-merge" },
@@ -86,6 +88,7 @@ export default defineConfig({
           items: [
             { label: "Overview", slug: "integrations/overview" },
             { label: "Storybook", slug: "integrations/storybook" },
+            { label: "VS Code", slug: "integrations/vs-code" },
           ],
         },
       ],
