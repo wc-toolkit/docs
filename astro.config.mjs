@@ -88,7 +88,6 @@ export default defineConfig({
           items: [
             { label: "Overview", slug: "integrations/overview" },
             { label: "Storybook", slug: "integrations/storybook" },
-            { label: "VS Code", slug: "integrations/vs-code" },
           ],
         },
       ],
