@@ -87,6 +87,7 @@ export default defineConfig({
           label: "Integrations",
           items: [
             { label: "Overview", slug: "integrations/overview" },
+            { label: "JSX", slug: "integrations/jsx" },
             { label: "Storybook", slug: "integrations/storybook" },
           ],
         },
