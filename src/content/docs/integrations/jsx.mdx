@@ -121,7 +121,7 @@ This allows you to customize how the types are generated, where they are output,
 ```ts
 type JsxTypesOptions = {
   /** Used to get a specific path for a given component */
-  componentTypePath?: (name: string, tag?: string) => string;
+  componentTypePath?: (name: string, tag?: string, modulePath?: string) => string;
   /** Name of the file generated */
   fileName?: string;
   /** Path to output directory */
