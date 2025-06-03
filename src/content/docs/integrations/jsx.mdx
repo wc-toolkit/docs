@@ -116,18 +116,10 @@ Create a declaration file and extend JSX's `IntrinsicElements`:
 // custom-elements-types.d.ts
 import type { CustomElements } from "path/to/jsx-types";
 
-declare module "my-app" {
-  namespace JSX {
-    interface IntrinsicElements extends CustomElements {}
-  }
+declare namespace JSX {
+  interface IntrinsicElements extends CustomElements {}
 }
 ```
-
-<Aside> 
-Libraries will often have their own module names you will need to use when extending the `IntrinsicElements` interface. 
-
-For example, Preact requires you to use the `"preact"` module name instead of `"my-app"` (`declare module "preact"`) and StencilJS uses "@stencil/core" (`declare module "@stencil/core"`). 
-</Aside>
 
 ## Configuration
 
