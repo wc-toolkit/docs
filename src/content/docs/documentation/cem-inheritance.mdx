@@ -90,14 +90,16 @@ type CemInheritanceOptions = {
   outdir?: string;
   /** Class names of any components you would like to exclude from inheritance */
   exclude?: string[];
-  /** Omit items from inheritance based on CEM Analyzer plugin config */
-  omitByConfig?: ClassOmit;
   /** Omit items from inheritance based on a custom CEM property */
   omitByProperty?: OmittedProperties;
+  /** Omit items from inheritance based on CEM Analyzer plugin config */
+  omitByConfig?: ConfigOmit;
   /** Skip inheritance for an aspect of your components */
   ignore?: string[];
   /** External CEMs that your components extend */
   externalManifests?: unknown[];
+  /** Include external manifest declarations in your manifest */
+  includeExternalManifests?: boolean;
   /** Shows process logs */
   debug?: boolean;
   /** Prevents plugin from executing */
@@ -216,3 +218,21 @@ const options = {
   externalManifests: [externalCEM],
 };
 ```
+
+## Including External Manifest Declarations
+
+If you want to include the actual component declarations from external manifests in your final manifest (not just use them for inheritance), you can use the `includeExternalManifests` option along with `externalManifests`.
+
+```ts
+import externalCEM from "path/to/external/custom-elements.json" with { type: "json" };
+
+const options = {
+  externalManifests: [externalCEM],
+  includeExternalManifests: true,
+};
+```
+
+When `includeExternalManifests` is set to `true`, the external manifest's module information will be included in your final manifest file. 
+This is useful when you want to create a comprehensive manifest that includes both your components and their parent components from external libraries.
+
+<Aside>When using `includeExternalManifests: true`, make sure the external manifests don't conflict with your own component declarations.</Aside>
