@@ -53,6 +53,7 @@ export default defineConfig({
           label: "CEM Tools",
           items: [
             { label: "Overview", slug: "cem-utilities/overview" },
+            { label: "CEM Sorter", slug: "cem-utilities/cem-sorter" },
             { label: "CEM Validator", slug: "cem-utilities/cem-validator" },
             {
               label: "Helpers",
