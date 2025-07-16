@@ -114,14 +114,15 @@ Create a declaration file and extend JSX's `IntrinsicElements`:
 
 ```ts
 // custom-elements-types.d.ts
-import type { CustomElements } from "path/to/jsx-types";
+import type { CustomElements, CustomCssProperties } from "path/to/jsx-types";
 
 // The module name is typically something like 'react', 'preact'
 // or whatever the package name is that provides JSX support.
-declare module 'react' {
+declare module "react" {
   namespace JSX {
     interface IntrinsicElements extends CustomElements {}
   }
+  export interface CSSProperties extends CustomCssProperties {}
 }
 ```
 
@@ -150,6 +151,8 @@ type JsxTypesOptions = {
   globalEvents?: string;
   /** Adds types to allow users to add undefined attributes or props to the custom elements */
   allowUnknownProps?: boolean;
+  /** Exclude types for CSS custom properties */
+  excludeCssCustomProperties?: boolean;
   /** Adds a prefix to tag references */
   prefix?: string;
   /** Adds a suffix to tag references */
