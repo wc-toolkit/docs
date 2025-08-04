@@ -122,11 +122,6 @@ export type ComponentDescriptionOptions = {
    * @default "description"
    */
   descriptionSrc?: "description" | "summary" | (string & {});
-  /**
-   * If you have a custom property that contains your types, you can provide the name here.
-   * @default "parsedType"
-   */
-  altType?: string;
   /** The options for each component API */
   apis?: {
     attributes?: ComponentApiOptions<Attribute>;
@@ -140,6 +135,14 @@ export type ComponentDescriptionOptions = {
     cssParts?: ComponentApiOptions<CssPart>;
     cssState?: ComponentApiOptions<CssCustomState>;
   };
+  /** The section heading level to use for the component details sections */
+  sectionHeadingLevel?: number;
+    /**
+   * If you have a custom property that contains your types, you can provide the name here.
+   * @deprecated This is unused will be removed in the next major version
+   * @default "parsedType"
+   */
+  altType?: string;
 };
 
 /** Available options for setting the order of the docs APIs */
