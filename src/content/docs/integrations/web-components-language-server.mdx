@@ -24,7 +24,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 ![Demonstration of the web components language server](../../../assets/vscode-wcls_demo.gif)
 
-A powerful Visual Studio Code extension that provides intelligent language support for Web Components development. This extension enhances your development experience with advanced IntelliSense and validation for Web Components.
+A powerful Visual Studio Code extension (but more to come) that provides intelligent language support for development with Web Components. This extension enhances your development experience with advanced IntelliSense and validation for Web Components.
 
 This extension uses the [Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest) to generate the necessary information for the component integration and validation.
 
@@ -93,17 +93,38 @@ interface WCConfig {
   tagFormatter?: (tagName: string) => string;
 
   /** Diagnostic severity levels for various validation checks. */
+  /** Diagnostic severity levels for various validation checks. */
   diagnosticSeverity?: {
-    /** Severity for invalid boolean attribute values. */
+    /** 
+     * Severity for invalid boolean attribute values. 
+     * @default "error" 
+     */
     invalidBoolean?: DiagnosticSeverity;
-    /** Severity for invalid number attribute values. */
+    /** 
+     * Severity for invalid number attribute values. 
+     * @default "error" 
+     */
     invalidNumber?: DiagnosticSeverity;
-    /** Severity for invalid attribute values. */
+    /** 
+     * Severity for invalid attribute values. 
+     * @default "error" 
+     */
     invalidAttributeValue?: DiagnosticSeverity;
-    /** Severity for usage of deprecated attributes. */
+    /** 
+     * Severity for usage of deprecated attributes. 
+     * @default "warning" 
+     */
     deprecatedAttribute?: DiagnosticSeverity;
-    /** Severity for usage of deprecated elements. */
+    /** 
+     * Severity for usage of deprecated elements. 
+     * @default "warning" 
+     */
     deprecatedElement?: DiagnosticSeverity;
+    /** 
+     * Severity for usage of duplicate attributes. 
+     * @default "error" 
+     */
+    duplicateAttribute?: DiagnosticSeverity;
   };
 }
 ```
