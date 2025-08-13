@@ -24,7 +24,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 ![Demonstration of the web components language server](../../../assets/vscode-wcls_demo.gif)
 
-A powerful Visual Studio Code extension (but more to come) that provides intelligent language support for development with Web Components. This extension enhances your development experience with advanced IntelliSense and validation for Web Components.
+The initial version is a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=wc-toolkit.web-components-language-server), but more editor support is planned. It provides intelligent language support for building with Web Components. This extension enhances your development experience with advanced IntelliSense and validation for Web Components.
 
 This extension uses the [Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest) to generate the necessary information for the component integration and validation.
 
@@ -42,7 +42,7 @@ This extension uses the [Custom Elements Manifest](https://github.com/webcompone
 
 ### 🔧 Code Navigation
 
-- **Go to definition** for custom elements and their properties
+- **Go to definition** for custom elements that will take you to the relevant position the in the Custom Elements Manifest
 
 ## Installation
 
@@ -93,7 +93,6 @@ interface WCConfig {
   tagFormatter?: (tagName: string) => string;
 
   /** Diagnostic severity levels for various validation checks. */
-  /** Diagnostic severity levels for various validation checks. */
   diagnosticSeverity?: {
     /** 
      * Severity for invalid boolean attribute values. 
@@ -141,15 +140,9 @@ interface WCConfig {
 
 **IntelliSense not appearing?**
 
+- Try restarting the language server (`Ctrl/Cmd+Shift+P` > `Web Components: Restart Language Server`)
 - Verify TypeScript/JavaScript language support is enabled
 - Check if other extensions are conflicting
-- Try reloading the window (`Ctrl+Shift+P` > `Reload Window`)
-
-### Getting Help
-
-- 📚 [Documentation](https://github.com/your-org/wc-toolkit/docs)
-- 🐛 [Report Issues](https://github.com/your-org/wc-toolkit/issues)
-- 💬 [Discussions](https://github.com/your-org/wc-toolkit/discussions)
 
 ---
 
