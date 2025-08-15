@@ -89,6 +89,15 @@ export default {
 ```ts
 /** Configuration options for the Web Components Language Server. */
 interface WCConfig {
+  /**
+   * Specifies a list of glob patterns that match files to be included in compilation.
+   * If no 'include' property is present, the server defaults to including all files in the containing directory and subdirectories except those specified by 'exclude'.
+   */
+  include?: string[];
+
+  /** Specifies a list of files to be excluded from the language server. */
+  exclude?: string[];
+
   /** Optional function to format tag names before processing. */
   tagFormatter?: (tagName: string) => string;
 
