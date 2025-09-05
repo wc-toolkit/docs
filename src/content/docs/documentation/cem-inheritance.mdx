@@ -100,6 +100,8 @@ type CemInheritanceOptions = {
   externalManifests?: unknown[];
   /** Include external manifest declarations in your manifest */
   includeExternalManifests?: boolean;
+  /** Map of class names to alternative class names */
+  aliasMap?: Record<string, string>;
   /** Shows process logs */
   debug?: boolean;
   /** Prevents plugin from executing */
@@ -236,3 +238,29 @@ When `includeExternalManifests` is set to `true`, the external manifest's module
 This is useful when you want to create a comprehensive manifest that includes both your components and their parent components from external libraries.
 
 <Aside>When using `includeExternalManifests: true`, make sure the external manifests don't conflict with your own component declarations.</Aside>
+
+## Alias Map
+
+If you are using third-party libraries that have class names that conflict with your own component class names, you can use the `aliasMap` option to map class names to alternative names.
+
+This is useful when you want to avoid naming conflicts and ensure that the inheritance mapping works correctly.
+
+```ts
+// my-button.js
+import { Button as NewButton } from 'third-party-library';
+
+export class Button extends NewButton {
+  // Your component code here
+}
+```
+
+```ts
+// custom-elements-manifest.config.js
+import { cemInheritancePlugin } from "@wc-toolkit/cem-inheritance";
+
+const options = {
+  aliasMap: {
+    "NewButton": "Button",
+  },
+};
+```
