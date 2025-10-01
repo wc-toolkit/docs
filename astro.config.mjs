@@ -90,6 +90,7 @@ export default defineConfig({
             { label: "Overview", slug: "integrations/overview" },
             { label: "JSX", slug: "integrations/jsx" },
             { label: "Language Server", slug: "integrations/web-components-language-server" },
+            { label: "WCTools", slug: "integrations/wctools" },
             { label: "Storybook", slug: "integrations/storybook" },
           ],
         },
