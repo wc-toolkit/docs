@@ -84,12 +84,15 @@ export default defineConfig({
             { label: "Type Parser", slug: "documentation/type-parser" },
           ],
         },
+        { label: "Editor Support", items: [
+          { label: "VS Code", slug: "integrations/vscode" },
+          { label: "JetBrains", slug: "integrations/jetbrains" },
+        ]},
         {
           label: "Integrations",
           items: [
             { label: "Overview", slug: "integrations/overview" },
             { label: "JSX", slug: "integrations/jsx" },
-            { label: "Language Server", slug: "integrations/web-components-language-server" },
             { label: "WCTools", slug: "integrations/wctools" },
             { label: "Storybook", slug: "integrations/storybook" },
           ],

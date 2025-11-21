@@ -1,0 +1,269 @@
+---
+title: Web Components Language Server - JetBrains
+description: Editor support for web components / custom elements in JetBrains IDEs
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_jetbrains.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_jetbrains.png
+hero:
+  title: 'Web Components Language Server - JetBrains'
+  tagline: Editor support for web components / custom elements in JetBrains IDEs
+  image:
+    alt: A workbench with tools, html, css, javascript, and web components logo
+    file: ../../../assets/wc-toolkit_jetbrains.png
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside>This is currently in `alpha` and is experimental.</Aside>
+
+![Demonstration of the web components language server](../../../assets/vscode-wcls_demo.gif)
+
+It provides intelligent language support for building with Web Components in JetBrains IDEs.
+This plugin enhances your development experience with advanced IntelliSense and validation for Web Components.
+
+This plugin uses the [Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest) to generate the necessary information for the component integration and validation.
+
+## Features
+
+### 🚀 Smart IntelliSense
+
+- **Auto-completion** for Web Component properties, methods, and events
+- **Type-aware suggestions** based on component definitions
+
+### 🔍 Advanced Code Analysis
+
+- **Real-time validation** of Web Component syntax and structure
+- **Error detection** for common Web Component patterns
+
+### 🔧 Code Navigation
+
+- **Go to definition** for custom elements that will take you to the relevant position in the Custom Elements Manifest
+
+### 🧭 Automatic Manifest Discovery
+
+- **Local project** - automatically finds manifests from `customElements` field or if `custom-elements.json` is at the root of the project
+
+- **Project dependencies** - scans project dependencies for manifests
+
+## Installation
+
+### From JetBrains Marketplace
+
+1. Open your JetBrains IDE (WebStorm, IntelliJ IDEA, etc.)
+2. Go to Settings/Preferences (`Ctrl+Alt+S` / `Cmd+,`)
+3. Navigate to Plugins
+4. Search for ["Web Components Language Server"](https://plugins.jetbrains.com/plugin/29094-web-components-language-server/)
+5. Click "Install"
+6. Restart the IDE
+
+## Usage
+
+### IntelliSense in Action
+
+```html
+<!-- Get intelligent suggestions for custom elements -->
+<my-custom-element my-attribute="value"></my-custom-element>
+```
+
+### Disabling diagnostics with comments
+
+You can locally disable `wctools` diagnostics using HTML comment directives. These mirror ESLint-style disables and support stacking multiple rule names (comma or space separated).
+
+- Disable rules for the entire file:
+
+```html
+<!-- wctools-ignore -->
+<!-- wctools-ignore unknownAttribute deprecatedAttribute -->
+```
+
+- Disable diagnostics for the following line:
+
+```html
+<!-- wctools-ignore-next-line deprecatedAttribute -->
+<my-element deprecated-attr></my-element>
+```
+
+Rules can be listed separated by spaces or commas (whitespace around commas is ignored), e.g.:
+`<!-- wctools-ignore ruleA ruleB,ruleC -->`.
+
+### Supported File Types
+
+This plugin currently works with HTML, TypeScript, JavaScript, and template files. Additional configurations will be added to customize this experience in the future.
+
+## Configuration
+
+To configure the Web Components Language Server, create a file named `wc.config.js` at the root of your workspace and export the configuration object.
+
+```js
+// wc.config.js
+export default {
+  // your config options here
+};
+```
+
+### Available Settings
+
+```ts
+/** Configuration options for the Web Components Language Server. */
+interface WCConfig extends LibraryConfig {
+  /**
+   * Specifies a list of glob patterns that match files to be included in compilation.
+   * If no 'files' or 'include' property is present in a tsconfig.json, the compiler defaults to including all files in the containing directory and subdirectories except those specified by 'exclude'.
+   */
+  include?: string[];
+
+  /** Specifies a list of files to be excluded from compilation. The 'exclude' property only affects the files included via the 'include'. */
+  exclude?: string[];
+
+  /** Used to enable debugging output. */
+  debug?: boolean;
+
+  /** Library specific configuration. */
+  libraries?: {
+    /** Configuration for each library by name where the key is package name */
+    [libraryName: string]: LibraryConfig;
+  };
+}
+
+/** Options for configuring the Language Server for a library */
+export interface LibraryConfig {
+  /**
+   * Specify a custom path to the CustomElements Manifest
+   * The path can be for a local file or a remote URL.
+   */
+  manifestSrc?: string;
+
+  /** Optional function to format tag names before processing. */
+  tagFormatter?: (tagName: string) => string;
+
+  /**
+   * Alternative property name that types may be mapped to
+   * @default "parsedType"
+   */
+  typeSrc?: string;
+
+  /** Diagnostic severity levels for various validation checks. */
+  diagnosticSeverity?: {
+    /**
+     * Severity for invalid boolean attribute values.
+     * @default "error"
+     */
+    invalidBoolean?: DiagnosticSeverity;
+    /**
+     * Severity for invalid number attribute values.
+     * @default "error"
+     */
+    invalidNumber?: DiagnosticSeverity;
+    /**
+     * Severity for invalid attribute values.
+     * @default "error"
+     */
+    invalidAttributeValue?: DiagnosticSeverity;
+    /**
+     * Severity for usage of deprecated attributes.
+     * @default "warning"
+     */
+    deprecatedAttribute?: DiagnosticSeverity;
+    /**
+     * Severity for usage of deprecated elements.
+     * @default "warning"
+     */
+    deprecatedElement?: DiagnosticSeverity;
+    /**
+     * Severity for usage of duplicate attributes.
+     * @default "error"
+     */
+    duplicateAttribute?: DiagnosticSeverity;
+    /**
+     * Severity for usage of unknown elements.
+     * @default "warning"
+     */
+    unknownElement?: DiagnosticSeverity;
+    /**
+     * Severity for usage of unknown attributes.
+     * @default "info"
+     */
+    unknownAttribute?: DiagnosticSeverity;
+  };
+}
+
+type DiagnosticSeverity = "error" | "warning" | "info" | "hint" | "off";
+```
+
+#### Example Configuration
+
+```js
+// wc.config.js
+export default {
+  /** Fetch manifest from a local directory */
+  manifestSrc: './build/custom-elements.json',
+
+  /**
+   * Only enable the Language Server feature for the TypeScript
+   * and HTML files in the `src` directory of the project.
+   */
+  include: ['src/**/*.ts', 'src/**/*.html'],
+
+  /**
+   * Add the custom suffix `_global` for all components.
+   * Language server options will now work for `my-button_global`.
+   */
+  tagFormatter: (tagName) => `${tagName}_global`,
+
+  diagnosticSeverity: {
+    /**
+     * Show duplicate attributes only as a warning instead of an error (global default override).
+     */
+    duplicateAttribute: 'warning'
+  },
+
+  /** Library specific configurations (override root settings for that library only). */
+  libraries: {
+    "@awesome.me/webawesome": {
+      /**
+       * Fetch manifest from a URL.
+       * (Optional if the NPM package is installed and exposes custom-elements.json)
+       */
+      manifestSrc: 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.0.0-beta.4/dist/custom-elements.json',
+
+      /**
+       * Replace `wa-` prefix with `awesome-` for all Web Awesome components.
+       * Language server options will now work for `awesome-button` instead of `wa-button`.
+       */
+      tagFormatter: (tagName) => tagName.replace('wa-', 'awesome-'),
+
+      diagnosticSeverity: {
+        /** Treat duplicate attributes as warnings just for this library (overrides global). */
+        duplicateAttribute: 'warning'
+      }
+    }
+  }
+};
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Plugin not working?**
+
+- Ensure you have a supported file open (HTML, TypeScript, JavaScript)
+- Check that the plugin is enabled in Settings → Plugins
+- Restart the IDE if needed
+
+**IntelliSense not appearing?**
+
+- Make sure you are using the latest version of the plugin
+- If your Custom Elements Manifest is not at the root of your project or is remote, use the `wc.config.js` to point the language server to the right location
+- Check the IDE logs for errors (Help → Show Log in Explorer/Finder)
+- Try invalidating caches and restarting (File → Invalidate Caches...)
+
+---
+
+**Enjoy enhanced Web Components development in JetBrains IDEs!** 🎉
