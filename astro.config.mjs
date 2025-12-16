@@ -87,6 +87,7 @@ export default defineConfig({
         { label: "Editor Support", items: [
           { label: "VS Code", slug: "integrations/vscode" },
           { label: "JetBrains", slug: "integrations/jetbrains" },
+          { label: "Neovim", slug: "integrations/neovim" },
         ]},
         {
           label: "Integrations",
