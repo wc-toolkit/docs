@@ -88,6 +88,7 @@ export default defineConfig({
           { label: "VS Code", slug: "integrations/vscode" },
           { label: "JetBrains", slug: "integrations/jetbrains" },
           { label: "Neovim", slug: "integrations/neovim" },
+          { label: "Zed", slug: "integrations/zed" },
         ]},
         {
           label: "Integrations",
