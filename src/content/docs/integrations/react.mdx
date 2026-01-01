@@ -11,18 +11,25 @@ head:
       property: twitter:image
       content: https://wc-toolkit.com/images/wc-toolkit_react.png
 hero:
-  title: 'React Wrappers'
+  title: "React Wrappers"
   tagline: Generate react wrappers for your custom elements / web components
   image:
     alt: A workbench with tools, html, css, javascript, and JSX logo
     file: ../../../assets/wc-toolkit_react.png
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside } from "@astrojs/starlight/components";
+
+![demo of the react wrappers](../../../assets/react-wrappers-demo.gif)
 
 This package generates ergonomic React wrappers for your Web Components straight from a Custom Elements Manifest (CEM) with not additional configurations or setup in your components. This package plugs into the CEM Analyzer flow or can be called programmatically to emit React components, types, and optional scoping utilities.
 
-<Aside>If you are using React v19+, you can now use custom elements directly without needing wrappers. Be sure to check out the [JSX Types generator package](https://wc-toolkit.com/integrations/jsx/) to provide type-safe web components in your JSX templates.</Aside>
+<Aside>
+  If you are using React v19+, you can now use custom elements directly without
+  needing wrappers. Be sure to check out the [JSX Types generator
+  package](https://wc-toolkit.com/integrations/jsx/) to provide type-safe web
+  components in your JSX templates.
+</Aside>
 
 ## Overview
 
@@ -80,12 +87,12 @@ The most common way to use this package is as a plugin in your [Custom Elements 
 
 ```ts
 // cem-analyzer.config.js
-import { reactWrapperPlugin } from '@wc-toolkit/react-wrappers';
+import { reactWrapperPlugin } from "@wc-toolkit/react-wrappers";
 
 export default {
   plugins: [
     reactWrapperPlugin({
-      outdir: './react',
+      outdir: "./react",
     }),
   ],
 };
@@ -104,12 +111,12 @@ This will analyze your web components and generate React wrappers in the `./reac
 You can also call the generator directly with a manifest object:
 
 ```ts
-import manifest from './custom-elements.json' with { type: 'json' };
-import { generateReactWrappers } from '@wc-toolkit/react-wrappers';
+import manifest from "./custom-elements.json" with { type: "json" };
+import { generateReactWrappers } from "@wc-toolkit/react-wrappers";
 
 // Generate wrappers
 generateReactWrappers(manifest, {
-  outdir: './react',
+  outdir: "./react",
   stronglyTypedEvents: true,
   ssrSafe: true,
 });
@@ -122,8 +129,8 @@ This approach is useful for build scripts, custom tooling, or integrating with o
 After generation, import and use your components like any other React component:
 
 ```tsx
-import React, { useRef, useEffect } from 'react';
-import { MyButton, MyButtonElement, MyInput } from './react';
+import React, { useRef, useEffect } from "react";
+import { MyButton, MyButtonElement, MyInput } from "./react";
 
 export function App() {
   const buttonRef = useRef<MyButtonElement>(null);
@@ -137,7 +144,7 @@ export function App() {
         onMyClick={(event) => {
           // event.target is typed as MyButtonElement
           // event.detail contains typed custom event data
-          console.log('Clicked!', event.detail);
+          console.log("Clicked!", event.detail);
         }}
       >
         Click Me
@@ -149,7 +156,7 @@ export function App() {
         required
         onMyChange={(event) => {
           // if `stronglyTypedEvents` is true, event.target is typed as MyButtonElement
-          console.log('Value:', event.target.value);
+          console.log("Value:", event.target.value);
         }}
       />
     </div>
@@ -158,6 +165,7 @@ export function App() {
 ```
 
 The generated components:
+
 - Accept all documented attributes and properties from your CEM
 - Provide strongly typed event handlers (with `on` prefix)
 - Forward refs to the underlying custom element
@@ -193,43 +201,43 @@ All options work with both `reactWrapperPlugin()` and `generateReactWrappers()`.
 
 ### Core Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `outdir` | `string` | `"./react"` | Output directory for generated files |
-| `modulePath` | `(className, tagName) => string` | Auto-detected | Function to compute import path for custom elements |
-| `defaultExport` | `boolean` | `false` | Use default exports instead of named exports |
-| `debug` | `boolean` | `false` | Enable detailed logging |
-| `skip` | `boolean` | `false` | Skip generation (useful for conditional execution) |
+| Option          | Type                             | Default       | Description                                         |
+| --------------- | -------------------------------- | ------------- | --------------------------------------------------- |
+| `outdir`        | `string`                         | `"./react"`   | Output directory for generated files                |
+| `modulePath`    | `(className, tagName) => string` | Auto-detected | Function to compute import path for custom elements |
+| `defaultExport` | `boolean`                        | `false`       | Use default exports instead of named exports        |
+| `debug`         | `boolean`                        | `false`       | Enable detailed logging                             |
+| `skip`          | `boolean`                        | `false`       | Skip generation (useful for conditional execution)  |
 
 ### Type Safety Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `stronglyTypedEvents` | `boolean` | `false` | Generate strongly typed event helpers |
-| `reactProps` | `string[] \| boolean` | `[]` | Include React HTML attributes (`true` = all, array = specific) |
+| Option                | Type                  | Default | Description                                                    |
+| --------------------- | --------------------- | ------- | -------------------------------------------------------------- |
+| `stronglyTypedEvents` | `boolean`             | `false` | Generate strongly typed event helpers                          |
+| `reactProps`          | `string[] \| boolean` | `[]`    | Include React HTML attributes (`true` = all, array = specific) |
 
 ### Component Customization
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `componentNameFormatter` | `(tagName, componentName) => string` | `undefined` | Customize React component names |
-| `tagFormatter` | `(tagName, componentName) => string` | `undefined` | Customize rendered tag names |
-| `scopedTags` | `boolean` | `false` | Enable runtime tag scoping with `ScopeProvider` |
-| `exclude` | `string[]` | `[]` | Component class names to skip |
-| `descriptionSrc` | `"description" \| "summary" \| string` | `"description"` | Manifest field for documentation |
+| Option                   | Type                                   | Default         | Description                                     |
+| ------------------------ | -------------------------------------- | --------------- | ----------------------------------------------- |
+| `componentNameFormatter` | `(tagName, componentName) => string`   | `undefined`     | Customize React component names                 |
+| `tagFormatter`           | `(tagName, componentName) => string`   | `undefined`     | Customize rendered tag names                    |
+| `scopedTags`             | `boolean`                              | `false`         | Enable runtime tag scoping with `ScopeProvider` |
+| `exclude`                | `string[]`                             | `[]`            | Component class names to skip                   |
+| `descriptionSrc`         | `"description" \| "summary" \| string` | `"description"` | Manifest field for documentation                |
 
 ### Mapping & Extensions
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `attributeMapping` | `Record<string, string>` | `{}` | Map attribute names (e.g., `for` → `htmlFor`) |
-| `globalProps` | `MappedAttribute[]` | `[]` | Props to add to every component |
-| `globalEvents` | `GlobalEvent[]` | `[]` | Events to add to every component |
+| Option             | Type                     | Default | Description                                   |
+| ------------------ | ------------------------ | ------- | --------------------------------------------- |
+| `attributeMapping` | `Record<string, string>` | `{}`    | Map attribute names (e.g., `for` → `htmlFor`) |
+| `globalProps`      | `MappedAttribute[]`      | `[]`    | Props to add to every component               |
+| `globalEvents`     | `GlobalEvent[]`          | `[]`    | Events to add to every component              |
 
 ### SSR & Build Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
+| Option    | Type      | Default | Description                                  |
+| --------- | --------- | ------- | -------------------------------------------- |
 | `ssrSafe` | `boolean` | `false` | Lazy-load elements for server-side rendering |
 
 ## Advanced Usage
@@ -240,7 +248,7 @@ When using React frameworks with SSR (Next.js, Remix, Gatsby, Astro), Web Compon
 
 ```ts
 reactWrapperPlugin({
-  outdir: './react',
+  outdir: "./react",
   ssrSafe: true,
 });
 ```
@@ -250,7 +258,7 @@ With `ssrSafe: true`, wrappers use dynamic imports in `useEffect`:
 ```tsx
 // Generated wrapper (simplified)
 useEffect(() => {
-  import('../dist/my-button.js'); // Only loads on client
+  import("../dist/my-button.js"); // Only loads on client
 }, []);
 ```
 
@@ -258,7 +266,7 @@ This works seamlessly in Next.js App Router, Remix, and other SSR frameworks:
 
 ```tsx
 // app/page.tsx (Next.js App Router)
-import { MyButton } from '@/react';
+import { MyButton } from "@/react";
 
 export default function Page() {
   return <MyButton>Works in SSR!</MyButton>;
@@ -271,7 +279,7 @@ If your library supports multiple versions coexisting (e.g., `my-button` and `my
 
 ```ts
 reactWrapperPlugin({
-  outdir: './react',
+  outdir: "./react",
   scopedTags: true,
 });
 ```
@@ -279,8 +287,8 @@ reactWrapperPlugin({
 Then wrap your app with `ScopeProvider`:
 
 ```tsx
-import { ScopeProvider } from './react/ScopeProvider';
-import { MyButton, MyInput } from './react';
+import { ScopeProvider } from "./react/ScopeProvider";
+import { MyButton, MyInput } from "./react";
 
 export function App() {
   return (
@@ -294,6 +302,7 @@ export function App() {
 ```
 
 This prevents collisions when:
+
 - Running multiple versions of the same component library
 - Testing different versions side-by-side
 
@@ -303,7 +312,7 @@ Enable `stronglyTypedEvents` for maximum type safety:
 
 ```ts
 reactWrapperPlugin({
-  outdir: './react',
+  outdir: "./react",
   stronglyTypedEvents: true,
 });
 ```
@@ -313,7 +322,7 @@ This generates event type helpers:
 ```ts
 // Generated types
 export type MyButtonElement = HTMLElement & {
-  variant: 'primary' | 'secondary';
+  variant: "primary" | "secondary";
   // ... other properties
 };
 
@@ -330,7 +339,7 @@ export type MyButtonMyClickEvent = TypedEvent<
 Use them in your app:
 
 ```tsx
-import { MyButton } from './react';
+import { MyButton } from "./react";
 
 function App() {
   return (
@@ -353,8 +362,8 @@ Strip vendor prefixes or add namespaces:
 ```ts
 reactWrapperPlugin({
   // Updates the name of the react component: AcmeButton → Button, AcmeInput → Input
-  componentNameFormatter: (tagName, componentName) => 
-    componentName.replace(/^Acme/, ''),
+  componentNameFormatter: (tagName, componentName) =>
+    componentName.replace(/^Acme/, ""),
 });
 ```
 
@@ -370,7 +379,7 @@ Transform tag names at build time:
 ```ts
 reactWrapperPlugin({
   // x-button → acme-button
-  tagFormatter: (tagName) => tagName.replace('x-', 'acme-'),
+  tagFormatter: (tagName) => tagName.replace("x-", "acme-"),
 });
 ```
 
@@ -386,24 +395,24 @@ Add props or events to every component:
 
 ```ts
 reactWrapperPlugin({
-  outdir: './react',
+  outdir: "./react",
   globalProps: [
     {
-      attr: 'data-testid',
-      type: 'string',
-      description: 'Test identifier for automated testing',
+      attr: "data-testid",
+      type: "string",
+      description: "Test identifier for automated testing",
     },
     {
-      attr: 'data-theme',
+      attr: "data-theme",
       type: '"light" | "dark" | "auto"',
-      description: 'Theme override for this component',
+      description: "Theme override for this component",
     },
   ],
   globalEvents: [
     {
-      event: 'app-telemetry',
-      description: 'Fired for analytics tracking',
-      type: '{ category: string; action: string; label?: string }',
+      event: "app-telemetry",
+      description: "Fired for analytics tracking",
+      type: "{ category: string; action: string; label?: string }",
     },
   ],
 });
@@ -432,10 +441,10 @@ React reserves certain prop names. Map them to alternatives:
 ```ts
 reactWrapperPlugin({
   attributeMapping: {
-    for: 'htmlFor',        // <label for> → htmlFor
-    class: 'className',    // class → className
-    readonly: 'readOnly',  // readonly → readOnly
-    tabindex: 'tabIndex',  // tabindex → tabIndex
+    for: "htmlFor", // <label for> → htmlFor
+    class: "className", // class → className
+    readonly: "readOnly", // readonly → readOnly
+    tabindex: "tabIndex", // tabindex → tabIndex
   },
 });
 ```
@@ -450,7 +459,7 @@ reactWrapperPlugin({
   reactProps: true,
 
   // Option 2: Include specific attributes (smaller bundle)
-  reactProps: ['inert', 'editContext', 'nonce', 'spellcheck', 'role'],
+  reactProps: ["inert", "editContext", "nonce", "spellcheck", "role"],
 });
 ```
 
@@ -469,7 +478,7 @@ For monorepos or custom entry points:
 reactWrapperPlugin({
   modulePath: (className, tagName) => {
     // Different paths for different component families
-    if (tagName.startsWith('sl-')) {
+    if (tagName.startsWith("sl-")) {
       return `@shoelace-style/shoelace/dist/components/${tagName}/${tagName}.js`;
     }
     return `@my-org/components/dist/${className}.js`;
@@ -484,9 +493,9 @@ Skip generation in certain environments:
 ```ts
 reactWrapperPlugin({
   // prevents the plugin from running
-  skip: process.env.SKIP_REACT === 'true',
-  
+  skip: process.env.SKIP_REACT === "true",
+
   // enables debug logging to the console
-  debug: process.env.DEBUG === 'true',
+  debug: process.env.DEBUG === "true",
 });
 ```
