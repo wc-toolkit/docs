@@ -68,15 +68,7 @@ This package solves all these issues by generating idiomatic React components th
 ## Installation
 
 ```bash
-npm install @wc-toolkit/react-wrappers
-```
-
-```bash
-pnpm add @wc-toolkit/react-wrappers
-```
-
-```bash
-yarn add @wc-toolkit/react-wrappers
+npm install -D @wc-toolkit/react-wrappers
 ```
 
 ## Quick Start
@@ -86,7 +78,7 @@ yarn add @wc-toolkit/react-wrappers
 The most common way to use this package is as a plugin in your [Custom Elements Manifest Analyzer](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/) workflow:
 
 ```ts
-// cem-analyzer.config.js
+// custom-elements-manifest.config.mjs
 import { reactWrapperPlugin } from "@wc-toolkit/react-wrappers";
 
 export default {
