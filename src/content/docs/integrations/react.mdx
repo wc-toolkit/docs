@@ -63,7 +63,7 @@ This package solves all these issues by generating idiomatic React components th
 - 🛡️ **SSR Safe**: Optional lazy element loading for server-side rendering environments
 - 🧪 **Customizable**: Extensive formatting options for component and tag names with optional runtime scoping
 - 📦 **Tree-Shakeable**: Generates individual files for optimal bundle sizes
-- ⚡ **Framework Agnostic**: While focused on React, patterns work with Preact and other React-like libraries
+- ⚡ **Framework Agnostic**: Generated from CEM, so it can be used with any web components library that can generate a custom elements manifest.
 
 ## Installation
 
@@ -234,70 +234,6 @@ All options work with both `reactWrapperPlugin()` and `generateReactWrappers()`.
 
 ## Advanced Usage
 
-### Server-Side Rendering (SSR)
-
-When using React frameworks with SSR (Next.js, Remix, Gatsby, Astro), Web Components can cause issues because `customElements` doesn't exist on the server. Enable `ssrSafe` to defer element registration to the client:
-
-```ts
-reactWrapperPlugin({
-  outdir: "./react",
-  ssrSafe: true,
-});
-```
-
-With `ssrSafe: true`, wrappers use dynamic imports in `useEffect`:
-
-```tsx
-// Generated wrapper (simplified)
-useEffect(() => {
-  import("../dist/my-button.js"); // Only loads on client
-}, []);
-```
-
-This works seamlessly in Next.js App Router, Remix, and other SSR frameworks:
-
-```tsx
-// app/page.tsx (Next.js App Router)
-import { MyButton } from "@/react";
-
-export default function Page() {
-  return <MyButton>Works in SSR!</MyButton>;
-}
-```
-
-### Runtime Tag Scoping
-
-If your library supports multiple versions coexisting (e.g., `my-button` and `my-button_v2`), enable `scopedTags` and use `ScopeProvider`:
-
-```ts
-reactWrapperPlugin({
-  outdir: "./react",
-  scopedTags: true,
-});
-```
-
-Then wrap your app with `ScopeProvider`:
-
-```tsx
-import { ScopeProvider } from "./react/ScopeProvider";
-import { MyButton, MyInput } from "./react";
-
-export function App() {
-  return (
-    <ScopeProvider tagFormatter={(tagName) => `${tagName}_v2`}>
-      {/* Renders as <my-button_v2> instead of <my-button> */}
-      <MyButton>Scoped Button</MyButton>
-      <MyInput label="Scoped Input" />
-    </ScopeProvider>
-  );
-}
-```
-
-This prevents collisions when:
-
-- Running multiple versions of the same component library
-- Testing different versions side-by-side
-
 ### Strongly Typed Events
 
 Enable `stronglyTypedEvents` for maximum type safety:
@@ -344,7 +280,6 @@ function App() {
   );
 }
 ```
-
 ### Custom Formatting
 
 #### Component Name Formatting
@@ -423,6 +358,70 @@ Every component now accepts these:
   Submit
 </MyButton>
 ```
+
+### Server-Side Rendering (SSR)
+
+When using React frameworks with SSR (Next.js, Remix, Gatsby, Astro), Web Components can cause issues because `customElements` doesn't exist on the server. Enable `ssrSafe` to defer element registration to the client:
+
+```ts
+reactWrapperPlugin({
+  outdir: "./react",
+  ssrSafe: true,
+});
+```
+
+With `ssrSafe: true`, wrappers use dynamic imports in `useEffect`:
+
+```tsx
+// Generated wrapper (simplified)
+useEffect(() => {
+  import("../dist/my-button.js"); // Only loads on client
+}, []);
+```
+
+This works seamlessly in Next.js App Router, Remix, and other SSR frameworks:
+
+```tsx
+// app/page.tsx (Next.js App Router)
+import { MyButton } from "@/react";
+
+export default function Page() {
+  return <MyButton>Works in SSR!</MyButton>;
+}
+```
+
+### Runtime Tag Scoping
+
+If your library supports multiple versions coexisting (e.g., `my-button` and `my-button_v2`), enable `scopedTags` and use `ScopeProvider`:
+
+```ts
+reactWrapperPlugin({
+  outdir: "./react",
+  scopedTags: true,
+});
+```
+
+Then wrap your app with `ScopeProvider`:
+
+```tsx
+import { ScopeProvider } from "./react/ScopeProvider";
+import { MyButton, MyInput } from "./react";
+
+export function App() {
+  return (
+    <ScopeProvider tagFormatter={(tagName) => `${tagName}_v2`}>
+      {/* Renders as <my-button_v2> instead of <my-button> */}
+      <MyButton>Scoped Button</MyButton>
+      <MyInput label="Scoped Input" />
+    </ScopeProvider>
+  );
+}
+```
+
+This prevents collisions when:
+
+- Running multiple versions of the same component library
+- Testing different versions side-by-side
 
 ## Common Patterns
 
