@@ -94,6 +94,7 @@ export default defineConfig({
           label: "Integrations",
           items: [
             { label: "Overview", slug: "integrations/overview" },
+            { label: "React", slug: "integrations/react" },
             { label: "JSX", slug: "integrations/jsx" },
             { label: "WCTools", slug: "integrations/wctools" },
             { label: "Storybook", slug: "integrations/storybook" },
