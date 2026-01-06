@@ -20,7 +20,7 @@ hero:
 
 import { Aside } from '@astrojs/starlight/components';
 
-This package is designed to generate [JSX](https://www.typescriptlang.org/docs/handbook/jsx.html) types for your custom elements. These types will generate inline documentation, autocomplete, and type-safe validation for your custom elements in frameworks that use JSX like [React (19+)](https://react.dev/), [Preact](https://preactjs.com/) and [StencilJS](https://stenciljs.com/).
+This package is designed to generate [JSX](https://www.typescriptlang.org/docs/handbook/jsx.html) types for your custom elements. These types will generate inline documentation, autocomplete, and type-safe validation for your custom elements in frameworks that use JSX like [React (19+)](https://react.dev/), [Preact](https://preactjs.com/), [StencilJS](https://stenciljs.com/), and [SolidJS](https://www.solidjs.com/).
 
 ![demo of autocomplete features for custom elements in a jsx project](https://github.com/break-stuff/cem-tools/blob/main/demo/images/solid-js-integration/solid-js-integration.gif?raw=true)
 
@@ -39,14 +39,13 @@ This includes types and documentation for:
 - Methods (types and docs)
 - Slots (docs)
 - CSS Custom Properties (docs)
-- CSS Props (docs)
 - CSS States (docs)
 
 ## Usage
 
 This package includes two ways to generate the custom data config file:
 
-1. calling a function in your build pipeline
+1. programatically calling a function in your build pipeline
 2. as a plugin for the [Custom Element Manifest Analyzer](https://custom-elements-manifest.open-wc.org/)
 
 ### Install
@@ -58,7 +57,6 @@ npm i -D @wc-toolkit/jsx-types
 ### Build Pipeline
 
 ```ts
-// generate-types.ts
 import { generateJsxTypes, JsxTypesOptions } from "@wc-toolkit/jsx-types";
 import manifest from "./path/to/custom-elements.json";
 
@@ -116,280 +114,376 @@ Create a declaration file and extend JSX's `IntrinsicElements`:
 // custom-elements-types.d.ts
 import type { CustomElements, CustomCssProperties } from "path/to/jsx-types";
 
-// The module name is typically something like 'react', 'preact'
-// or whatever the package name is that provides JSX support.
-declare module "react" {
+declare module "my-library" {
   namespace JSX {
     interface IntrinsicElements extends CustomElements {}
   }
-  interface CSSProperties extends CustomCssProperties {}
+  export interface CSSProperties extends CustomCssProperties {}
 }
 ```
 
-## Configuration
+> **_NOTE:_** Libraries will have their own module names you will need to use when extending the `IntrinsicElements` interface. For example, Preact requires you to use the `"preact"` module name instead of `"my-library"` (`declare module "preact"`) and StencilJS uses "@stencil/core" (`declare module "@stencil/core"`).
 
-You can configure the JSX Types Generator using the `JsxTypesOptions` interface. 
-This allows you to customize how the types are generated, where they are output, and how they interact with your components.
 
-```ts
-type JsxTypesOptions = {
-  /** Used to get a specific path for a given component */
-  componentTypePath?: (name: string, tag?: string, modulePath?: string) => string;
-  /** Name of the file generated */
-  fileName?: string;
-  /** Path to output directory */
-  outdir?: string;
-  /** Component names to exclude form process */
-  exclude?: string[];
-  /** Used to get global type reference for components */
-  globalTypePath?: string;
-  /** Indicates if the component classes are a default export rather than a named export */
-  defaultExport?: boolean;
-  /** Include standard global events (ie - `onClick`, `onHover`, etc. */
-  includeDefaultDOMEvents?: boolean;
-  /** Used to add global element props to all component types */
-  globalEvents?: string;
-  /** Adds types to allow users to add undefined attributes or props to the custom elements */
-  allowUnknownProps?: boolean;
-  /** Exclude types for CSS custom properties */
-  excludeCssCustomProperties?: boolean;
-  /** Adds a prefix to tag references */
-  prefix?: string;
-  /** Adds a suffix to tag references */
-  suffix?: string;
-  /** Available options for configuring the way the components description is rendered */
-  componentDescriptionOptions?: ComponentDescriptionOptions;
-  /** Uses your custom event type instead of `CustomEvent<T>` */
-  overrideCustomEventType?: boolean;
-  /** Skips the code from running */
-  skip?: boolean;
-  /** Shows contextual logs */
-  debug?: boolean;
-};
-```
 
-### Output
+## Configuration Options
 
-You can configure the destination and the file name of the generated type file using the `outdir` and `fileName` configuration.
+The `JsxTypesOptions` interface provides several configuration options to customize how types are generated for your project:
+
+### Basic Options
+
+#### `fileName`
+- **Type:** `string`
+- **Default:** `"custom-element-jsx.d.ts"`
+- **Description:** The name of the generated type definition file.
 
 ```ts
 {
-  /** Path to output directory */
-  outdir: 'dist',
-  /** File name for the types */
-  fileName: 'jsx-integration.d.ts'
+  fileName: "my-components.d.ts"
 }
 ```
 
-### Descriptions
-
-Configurations to the component descriptions can be made using the `componentDescriptionOptions` property.
-These leverage the details from the Custom Elements Manifest to generate the descriptions for each component and utilize our CEM Description helper.
-
-Details on how to configure this description can be found [here](/cem-utilities/descriptions#component-details-template).
+#### `outdir`
+- **Type:** `string`
+- **Default:** `"./"`
+- **Description:** The output directory where the generated types file will be saved.
 
 ```ts
 {
-  componentDescriptionOptions: {
-    /** Adds a prefix to the description */
-    prefix: "This is a custom element: ",
-    /** Adds a suffix to the description */
-    suffix: " - Learn more at https://example.com/docs",
-    /** Whether to include the component's version in the description */
-    includeVersion: true,
+  outdir: "./types"
+}
+```
+
+#### `exclude`
+- **Type:** `string[]`
+- **Default:** `[]`
+- **Description:** Array of component names to exclude from type generation.
+
+```ts
+{
+  exclude: ["my-internal-component", "my-deprecated-component"]
+}
+```
+
+### Import Configuration
+
+#### `componentTypePath`
+- **Type:** `(name: string, tag?: string, modulePath?: string) => string`
+- **Description:** A function that returns the import path for each component. This is useful when you need to customize the import statements in the generated types.
+
+```ts
+{
+  componentTypePath: (name, tagName) => 
+    `my-lib/components/${tagName}/${tagName}.js`
+}
+```
+
+#### `globalTypePath`
+- **Type:** `string`
+- **Description:** When provided, generates a single import statement for all components from this path instead of individual imports. This is useful if your library has a barrel file that exports all components.
+
+```ts
+{
+  globalTypePath: "my-lib"
+}
+```
+
+#### `defaultExport`
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** Set to `true` if your component classes use default exports instead of named exports.
+
+```ts
+{
+  defaultExport: true
+}
+```
+
+### Event Configuration
+
+#### `stronglyTypedEvents`
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** This feature is highly recommended for better type safety and autocomplete. Creates event types where the event's target is strongly typed to the custom element, providing better autocomplete and type safety for event handlers. When enabled, `e.detail` and `e.target` are strongly typed.
+
+```ts
+{
+  stronglyTypedEvents: true
+}
+```
+
+#### `includeDefaultDOMEvents`
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** Includes standard DOM events (e.g., `onClick`, `onHover`, etc.) in the generated types. The down side is that it can pollute the component API with attributes that aren't relevant to the component.
+
+```ts
+{
+  includeDefaultDOMEvents: true
+}
+```
+
+#### `globalEvents`
+- **Type:** `string`
+- **Description:** TypeScript type reference for global event props to add to all component types. This can be useful for adding custom events or event handlers to all components for things like custom telemetry.
+
+```ts
+{
+  globalEvents: "React.DOMAttributes<HTMLElement>"
+}
+```
+
+### Additional Options
+
+#### `allowUnknownProps`
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** Allows users to add undefined attributes or props to the custom elements without TypeScript errors.
+
+```ts
+{
+  allowUnknownProps: true
+}
+```
+
+#### `excludeCssCustomProperties`
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** Excludes CSS custom property types from generation.
+
+```ts
+{
+  excludeCssCustomProperties: true
+}
+```
+
+#### `tagFormatter`
+- **Type:** `(tagName: string) => string`
+- **Description:** Optional function to format tag names before processing. Useful for adding prefixes, suffixes, or transforming tag names.
+
+```ts
+{
+  tagFormatter: (tagName) => tagName.replace("my-", "custom-")
+}
+```
+
+### Utility Options
+
+#### `skip`
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** Skips the entire type generation process when set to `true`.
+
+```ts
+{
+  skip: process.env.SKIP_TYPES === "true"
+}
+```
+
+#### `debug`
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** Enables debug logging to help troubleshoot type generation issues.
+
+```ts
+{
+  debug: true
+}
+```
+
+### Deprecated Options
+
+#### `prefix` _(deprecated)_
+- **Type:** `string`
+- **Description:** Use `tagFormatter` instead. Adds a prefix to tag references.
+
+#### `suffix` _(deprecated)_
+- **Type:** `string`
+- **Description:** Use `tagFormatter` instead. Adds a suffix to tag references.
+
+#### `overrideCustomEventType` _(deprecated)_
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** This feature never worked as intended and will be removed in the next major version.
+
+## Framework-Specific Considerations
+
+### SolidJS
+
+When using these generated types with SolidJS, there are several important considerations to ensure proper integration:
+
+#### TypeScript Declaration
+
+If you are using a custom TypeScript declaration file, SolidJS has a custom type to include the attribute prefixes, so you will need to use `CustomElementsSolidJs` instead of `CustomElements`. For example:
+
+```ts
+// custom-elements-types.d.ts
+import type { CustomElementsSolidJs, CustomCssProperties } from "path/to/jsx-types";
+
+declare module "solid-js" {
+  namespace JSX {
+    interface IntrinsicElements extends CustomElementsSolidJs {}
   }
+  export interface CSSProperties extends CustomCssProperties {}
 }
 ```
 
-### Default Exports
+#### Property Binding
 
-If you component class does not provide a named export and is the default export, be sure to set `defaultExport` to `true`. This will endure the import for the class gets resolved correctly.
+SolidJS generates special type definitions that include property prefixes to handle different binding scenarios:
 
-### Types
+- **`attr:propertyName`** - For attribute binding (string values)
+- **`prop:propertyName`** - For property binding (any type)
+- **`bool:propertyName`** - For boolean properties
 
-If your components were built using TypeScript, you should define a path to your type declarations to pass that type-safety on to the JSX project.
+This allows SolidJS to properly handle web component properties:
 
-<Aside> All type paths should be relative to the location specified in the `outdir` option. </Aside>
+```tsx
+// Attribute binding (as string)
+<my-component attr:value={someString} />
 
-If your types are rolled up into a single type declaration file, you can set the `globalTypePath` option to the location of that file.
+// Property binding (with signals or objects)
+<my-component prop:value={someSignal()} />
 
-```ts
-{
-  globalTypePath: ".dist/types.d.ts";
-}
+// Boolean property
+<my-component bool:disabled={isDisabled} />
 ```
 
-If each of the component type definitions are split out by each component, you can use the `componentTypePath` to reference individual component paths.
+#### Custom Events
 
-```ts
-{
-  componentTypePath: (name, tag) => `./types/${tag}/${name}.d.ts`;
-}
-```
+SolidJS uses the `on:` prefix for custom events. The generated types include proper event handler types:
 
-<Aside> It's important to note that if a type path is not provided, the generator will fall back to the type defined in the Custom Elements Manifest. </Aside>
+```tsx
+import { createSignal } from 'solid-js';
 
-### Custom Event Type Handling with `overrideCustomEventType`
+const [value, setValue] = createSignal('');
 
-By default, the JSX Types Generator uses the standard `CustomEvent<T>` type for all custom events emitted by your components. However, some libraries may create custom event types.
-
-The `overrideCustomEventType` option allows you to use your own event type convention instead
-
-When enabled:
-
-- The generator will not explicitly use `CustomEvent<T>` in the generated types
-- Instead, it will use the event type exactly as specified in your components
-- This works well with frameworks that have their own event wrapper types
-
-#### Use Cases
-
-This option is particularly useful when:
-
-1. Your framework has its own event type system (like some versions of Stencil)
-2. You've created a custom event type that extends or modifies the standard CustomEvent
-3. You're working with a TypeScript setup that has special handling for events
-
-#### Example
-
-Without this option, events might be typed like:
-
-```typescript
-"onmy-change"?: (e: CustomEvent<T>) => void;
-```
-
-With `overrideCustomEventType: true`, if your event type is defined as `MyCustomEvent<T>`, the generator will preserve that type:
-
-```typescript
-"onmy-change"?: (e: MyCustomEvent<T>) => void;
-```
-
-<Aside> Only enable this option if you have specific event typing needs. For most cases, the default `CustomEvent<T>` is the appropriate choice. </Aside>
-
-### Type Flexibility with `allowUnknownProps`
-
-By default, the generated types are strict, only allowing properties and events that are explicitly defined in the custom elements manifest. This ensures type safety but can sometimes be restrictive when you need to pass additional properties that aren't formally defined in the component.
-
-When enabled:
-
-- Components will accept any additional properties beyond those explicitly defined
-- This can be helpful in the following scenarios:
-  - When components have undocumented properties
-  - When you need to pass data attributes (`data-*`)
-  - When using third-party libraries that attach special properties
-  - During development when component APIs are still evolving
-
-Example usage:
-
-```jsx
-// With allowUnknownProps: true
-<my-component
-  standardProp="value"
-  data-analytics="click-tracking" // Works with allowUnknownProps: true
-  unknown-attribute="something" // Works with allowUnknownProps: true
+<my-input
+  prop:value={value()}
+  on:my-input={(e) => {
+    // e.target is strongly typed when stronglyTypedEvents is enabled
+    setValue(e.target.value);
+  }}
+  on:my-change={(e) => {
+    // e.detail is strongly typed when stronglyTypedEvents is enabled
+    console.log('Changed:', e.detail);
+  }}
 />
 ```
 
-<Aside> While this option makes development more flexible, it comes at the cost of type safety. Use it sparingly and consider adding proper types to your components instead whenever possible. </Aside>
+#### innerHTML and textContent
 
-### Scoped Elements
+SolidJS types also include `innerHTML` and `textContent` properties for setting element content:
 
-There are two ways to work with scoped custom elements (elements with prefixes or suffixes):
-
-#### Configuration Options: `prefix` and `suffix`
-
-When generating your types, you can automatically add prefixes or suffixes to all tags:
-
-```ts
-// In your configuration
-{
-  // Adds "my-" to the beginning of all component tags
-  prefix: "my-",
-
-  // Adds "-component" to the end of all component tags
-  suffix: "-component"
-}
+```tsx
+<my-component innerHTML="<strong>Bold text</strong>" />
+<my-component textContent="Plain text content" />
 ```
 
-This will generate types where components like `<button>` become available as `<my-button-component>`.
+#### Reactive Property Updates
 
-#### Using `ScopedElements` Utility Type
+When working with reactive values in SolidJS, always use the `prop:` prefix for non-string properties:
 
-If you've already generated types without prefixes/suffixes, you can use the `ScopedElements` utility type to create scoped versions:
+```tsx
+import { createSignal } from 'solid-js';
+
+const [isOpen, setIsOpen] = createSignal(false);
+const [items, setItems] = createSignal([]);
+
+<my-dialog prop:open={isOpen()} />
+<my-list prop:items={items()} />
+```
+
+#### Refs and Methods
+
+Access custom element methods using SolidJS refs:
+
+```tsx
+import { onMount } from 'solid-js';
+
+let dialogRef: any;
+
+onMount(() => {
+  // Call custom element methods
+  dialogRef?.show();
+});
+
+<my-dialog ref={dialogRef}>
+  Dialog content
+</my-dialog>
+```
+
+### React
+
+For React 19+ projects, the types work with the native custom element support:
+
+```tsx
+<my-component
+  value="hello"
+  disabled={false}
+  onmy-event={(e) => console.log(e)}
+/>
+```
+
+### Preact
+
+Preact requires extending the `"preact"` module:
 
 ```ts
-// scoped-types.d.ts
-import type { CustomElements, ScopedElements } from "path/to/jsx-types";
-
-declare module "my-app" {
+declare module "preact" {
   namespace JSX {
-    interface IntrinsicElements extends ScopedElements<"prefix-", "-suffix"> {}
+    interface IntrinsicElements extends CustomElements {}
   }
 }
 ```
 
-<Aside> When using `ScopedElements`, you'll lose the detailed hover documentation that would normally be available when using the components. </Aside>
+### StencilJS
 
-### Adding DOM Event Support
-
-#### DOM Event Handlers
-
-Custom elements can respond to standard DOM events like clicks, keyboard input, and focus changes. There are two ways to add these event types to your components:
-
-#### Using `includeDefaultDOMEvents`
-
-The simplest approach - automatically include all standard DOM event handlers:
+StencilJS requires extending the `"@stencil/core"` module:
 
 ```ts
-{
-  includeDefaultDOMEvents: true; // Adds onClick, onKeyDown, onFocus, etc. to all components
+declare module "@stencil/core" {
+  namespace JSX {
+    interface IntrinsicElements extends CustomElements {}
+  }
 }
 ```
 
-This adds common event handlers like `onClick`, `onMouseOver`, `onKeyDown`, etc. to all your components.
+## Complete Configuration Example
 
-#### Using `globalEvents` for Custom Control
-
-For more control over which events are included:
+Here's a comprehensive example showing all commonly used options:
 
 ```ts
-{
-  globalEvents: `
-    /** Custom event fired for all elements when special action occurs */
-    onMySpecialEvent?: (event: CustomEvent<{ id: string }>) => void;
-  `;
-}
-```
+import { generateJsxTypes } from "@wc-toolkit/jsx-types";
+import manifest from "./custom-elements.json";
 
-#### Combining Both Approaches
-
-You can use both options together:
-
-```ts
-{
-  // Include standard DOM events
+generateJsxTypes(manifest, {
+  // Output configuration
+  fileName: "custom-element-jsx.d.ts",
+  outdir: "./types",
+  
+  // Component filtering
+  exclude: ["internal-component"],
+  
+  // Import configuration
+  componentTypePath: (name, tagName, modulePath) => {
+    return `my-library/components/${tagName}/${tagName}.js`;
+  },
+  defaultExport: true,
+  
+  // Event configuration
+  stronglyTypedEvents: true,
   includeDefaultDOMEvents: true,
-
-  // Add your own custom events
-  globalEvents: `
-    /** Custom event fired for all elements when special action occurs */
-    onMySpecialEvent?: (event: CustomEvent<{ id: string }>) => void;
-  `
-}
+  
+  // Tag formatting
+  tagFormatter: (tagName) => tagName.toLowerCase(),
+  
+  // Additional features
+  allowUnknownProps: false,
+  excludeCssCustomProperties: false,
+  
+  // Development
+  debug: process.env.DEBUG === "true",
+  skip: false,
+});
 ```
-
-#### Available Default DOM Events
-
-When using `includeDefaultDOMEvents: true`, the following event categories are included:
-
-- **Mouse Events**: `onClick`, `onContextMenu`, `onDoubleClick`, `onDrag`, `onDragEnd`, etc.
-- **Keyboard Events**: `onKeyDown`, `onKeyUp`, `onKeyPress`
-- **Focus Events**: `onFocus`, `onBlur`
-- **Form Events**: `onChange`, `onInput`, `onSubmit`, `onReset`
-- **UI Events**: `onScroll`
-- **Wheel Events**: `onWheel`
-- **Animation Events**: `onAnimationStart`, `onAnimationEnd`, `onAnimationIteration`
-- **Transition Events**: `onTransitionEnd`
-- **Media Events**: `onLoad`, `onError`
-- **Clipboard Events**: `onCopy`, `onCut`, `onPaste`
-
-<Aside> Always include JSDoc comments for your custom events. These comments will appear in editor tooltips, improving the developer experience. </Aside>
