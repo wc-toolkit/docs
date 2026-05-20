@@ -96,8 +96,8 @@ It doesn't overwrite the existing property, but will create a new property with 
 
 ## Complex types
 
-The plugin will also parse complex types, such as union, intersection, and generic types. 
-It will also supports Enums and TypeScript's utility types.
+The plugin parses complex types, such as union, intersection, and generic types. 
+It also supports Enums and TypeScript's utility types.
 
 ```ts
 type Test1 = "value1" | "value2" | "value3";
@@ -118,11 +118,7 @@ type DirectionOptions = keyof typeof DirectionEnum; // "Up" | "Down" | "Left" | 
 
 ## Limitations
 
-The plugin will attempt exclude parsing types that are identified in the the `exclude` option in your `tsconfig.json` file.
-However, it is not perfect and may still parse types that you don't want parsed, but it shouldn't impact the final outcome as this is a feature intended to improve performance.
-
-The plugin will also exclude types from the `node_modules` folder. If `node_modules` is not excluded from his process, it will cause the process to run out of memory.
-There are options in the works to allow you to specify which projects to include, but it's not available yet.
+If a type cannot be safely expanded, such as a recursive or overly complex external type, the plugin keeps the original type text and logs a warning with the type name, declaration location, and reason it was skipped.
 
 ## Configuration
 
