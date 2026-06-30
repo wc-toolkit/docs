@@ -55,6 +55,7 @@ export default defineConfig({
             { label: "Overview", slug: "cem-utilities/overview" },
             { label: "CEM Sorter", slug: "cem-utilities/cem-sorter" },
             { label: "CEM Validator", slug: "cem-utilities/cem-validator" },
+            { label: "CEM Analyzer Plugin", slug: "cem-utilities/cem-analyzer-plugin" },
             {
               label: "Helpers",
               collapsed: true,
