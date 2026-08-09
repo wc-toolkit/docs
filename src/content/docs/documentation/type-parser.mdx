@@ -126,13 +126,57 @@ There are a few ways you can configure the plugin to meet your environment.
 
 ```ts
 type Options = {
+  /** Controls whether object types are parsed, and if so, whether fully or partially ('none', 'partial', 'full') */
+  parseObjectTypes?: 'none' | 'partial' | 'full';
+  /** Controls whether method parameters are parsed */
+  parseParameters?: boolean;
   /** Determines the name of the property used in the manifest to store the parsed type */
   propertyName?: string;
+  /** Maximum depth to which nested types are expanded before bailing (default: 8) */
+  maxParseDepth?: number;
+  /** Maximum number of properties a type can have before bailing (default: 50) */
+  maxParseProperties?: number;
   /** Shows process logs */
   debug?: boolean;
   /** Prevents plugin from executing when true */
   skip?: boolean;
 }
+```
+
+### Object Types
+
+By default the plugin does not expand object types. Set `parseObjectTypes` to `'partial'` to expand the first level of properties, or `'full'` to expand nested objects as well.
+
+```js
+// custom-elements-manifest.config.js
+
+export default {
+  ...
+  plugins: [typeParserPlugin({ parseObjectTypes: "full" })],
+};
+```
+
+### Parameters
+
+Set `parseParameters` to `true` to also parse the types of method parameters.
+
+### Parse Limits
+
+If a type is overly complex, the plugin bails out and keeps the original type text. You can raise the defaults with `maxParseDepth` (how deeply nested types are expanded) and `maxParseProperties` (how many properties a type can have).
+
+```js
+// custom-elements-manifest.config.js
+
+export default {
+  ...
+  plugins: [
+    typeParserPlugin({
+      parseObjectTypes: "full",
+      maxParseDepth: 12,
+      maxParseProperties: 100,
+    }),
+  ],
+};
 ```
 
 ### Property Name
