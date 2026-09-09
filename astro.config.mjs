@@ -98,6 +98,7 @@ export default defineConfig({
             { label: "React", slug: "integrations/react" },
             { label: "JSX", slug: "integrations/jsx" },
             { label: "Vue.js", slug: "integrations/vuejs" },
+            { label: "Svelte", slug: "integrations/svelte" },
             { label: "Linting & Validation", slug: "integrations/wctools" },
             { label: "Storybook", slug: "integrations/storybook" },
           ],

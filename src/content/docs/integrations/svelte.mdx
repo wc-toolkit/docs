@@ -1,0 +1,288 @@
+---
+title: Svelte Types Generator
+description: Generate Svelte types for custom elements and web components
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_svelte.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_svelte.png
+hero:
+  title: 'Svelte Types Generator'
+  tagline: Generate Svelte types for custom elements and web components
+  image:
+    alt: A workbench with tools, html, css, javascript, and Svelte logo
+    file: ../../../assets/wc-toolkit_svelte.png
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This package generates TypeScript declarations for custom elements used in [Svelte](https://svelte.dev/) projects. The declarations provide type-safe validation for component attributes, component properties, custom events, and CSS custom properties.
+
+Types are generated from a [Custom Elements Manifest](https://custom-elements-manifest.open-wc.org/) and include documentation for:
+
+- Custom elements and component descriptions
+- Attributes and properties
+- Component properties passed through Svelte attributes
+- Custom event handlers with Svelte's `on:` syntax
+- Global element properties and optional DOM event handlers
+- Methods, slots, CSS parts, CSS states, and CSS custom properties
+
+## Usage
+
+The generator supports build scripts and the Custom Elements Manifest Analyzer.
+
+### Install
+
+```bash
+npm install --save-dev @wc-toolkit/svelte-types
+```
+
+### Build Pipeline
+
+```ts
+import {
+  generateSvelteTypes,
+  type SvelteTypesOptions,
+} from "@wc-toolkit/svelte-types";
+import manifest from "./custom-elements.json";
+
+generateSvelteTypes(manifest, {
+  outdir: "./src",
+  fileName: "custom-elements-svelte.d.ts",
+});
+```
+
+### Custom Elements Manifest Analyzer
+
+First [install and configure the analyzer](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/) and create a manifest configuration file.
+
+```js
+// custom-elements-manifest.config.js
+import { customElementSveltePlugin } from "@wc-toolkit/svelte-types";
+
+export default {
+  plugins: [
+    customElementSveltePlugin({
+      outdir: "./src",
+      fileName: "custom-elements-svelte.d.ts",
+    }),
+  ],
+};
+```
+
+## Include the Generated Types
+
+The generated file augments `svelteHTML.IntrinsicElements`. Include it in the TypeScript project used by your Svelte application.
+
+### Option 1: Include the File
+
+Write the file somewhere covered by `tsconfig.json`:
+
+```json
+{
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.svelte",
+    "src/custom-elements-svelte.d.ts"
+  ]
+}
+```
+
+### Option 2: Configure TypeScript Types
+
+If the declaration is published by a package, add its type entry to `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "types": ["my-library/custom-elements-svelte"]
+  }
+}
+```
+
+Use the generated declarations directly in Svelte markup:
+
+```svelte
+<script lang="ts">
+  let value = "";
+
+  function handleChange(event: CustomEvent) {
+    console.log(event.detail);
+  }
+</script>
+
+<x-input
+  label="Name"
+  value={value}
+  on:change={handleChange}
+/>
+```
+
+<Aside>
+  Include the generated declaration file in the same TypeScript program as your `.svelte` files. Otherwise, Svelte tooling cannot provide completions or validation for the custom elements.
+</Aside>
+
+## Svelte Features
+
+### Component Properties
+
+Public component properties are emitted as typed component attributes. This is the valid way to pass values to lowercase custom elements in Svelte:
+
+```svelte
+<x-slider value={value} />
+```
+
+Read-only and static properties are excluded. When a CEM property is associated with an attribute, it is emitted once using the attribute name.
+
+### Custom Events
+
+Manifest events are available through Svelte's event directive syntax:
+
+```svelte
+<x-input
+  on:change={(event) => {
+    console.log(event.detail);
+  }}
+/>
+```
+
+By default, Svelte 5 event attributes are generated alongside legacy event directives:
+
+```svelte
+<x-button on:change={handleChange} />
+<x-button onchange={handleChange} />
+```
+
+For a manifest event typed as `CustomEvent<ChangeDetail>`, both generated handlers accept that event type. Non-custom event types from the manifest are preserved, such as `MouseEvent`.
+
+### CSS Custom Properties
+
+CSS custom properties from the manifest are generated as Svelte style directives and accept `string | number` values:
+
+```svelte
+<x-slider style:--track-color={trackColor} />
+```
+
+### Slots
+
+Use web component slots with Svelte's standard `slot` attribute:
+
+```svelte
+<x-card>
+  <span slot="title">Card title</span>
+  Card content
+</x-card>
+```
+
+### Refs and Methods
+
+The generator exports a `*Element` type for each component. Use it with Svelte's `bind:this` to access the custom element and call its methods:
+
+```svelte
+<script lang="ts">
+  import type { DialogElement } from "./types/custom-elements-svelte";
+
+  let dialog: DialogElement;
+
+  function openDialog() {
+    dialog.showModal();
+  }
+</script>
+
+<x-dialog bind:this={dialog} />
+<button onclick={openDialog}>Open</button>
+```
+
+The exact ref type depends on the custom element class exported by the component library.
+
+Named CEM slots also produce a slot-name union for application code:
+
+```ts
+import type { CardSlots } from "./types/custom-elements-svelte";
+
+const slotName: CardSlots = "header";
+```
+
+## Configuration Options
+
+### Output Options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `fileName` | `string` | `custom-elements-svelte.d.ts` | Name of the generated declaration file. Omit it to return declaration text without writing a file. |
+| `outdir` | `string` | `./` | Directory where the generated declaration file is written. |
+| `exclude` | `string[]` | `[]` | Component class names to exclude. |
+
+### Import Options
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `componentTypePath` | `(name: string, tag?: string, modulePath?: string) => string` | Returns the module path used to import each component class. The third argument is the component's source module path from the manifest. |
+| `globalTypePath` | `string` | Imports all component classes and named event detail types from one module. |
+
+When neither import option is configured, types are read directly from the manifest. Generated imports expect named component exports:
+
+```ts
+import type { XButton } from "my-library/components/x-button/x-button.js";
+```
+
+### Event Options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `globalEvents` | `string` | | Adds custom event declarations to every generated component type. |
+| `includeDefaultDOMEvents` | `boolean` | `false` | Adds common DOM event handlers such as `on:click`, `onclick`, `on:focus`, and `onfocus`. |
+| `includeModernEventHandlers` | `boolean` | `true` | Includes Svelte 5 event attributes such as `onclick` alongside legacy `on:` handlers. Set to `false` for legacy syntax only. |
+
+```ts
+{
+  globalEvents: `
+    /** Fired when application telemetry is recorded. */
+    "on:telemetry"?: (event: CustomEvent<TelemetryDetail>) => void;
+  `,
+  includeDefaultDOMEvents: true,
+  includeModernEventHandlers: true,
+}
+```
+
+### Manifest and Utility Options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `typesSrc` | `string` | `type` | Reads types from an alternate CEM property, such as `parsedType`. |
+| `tagFormatter` | `(tagName: string) => string` | | Formats tag names before adding them to `CustomElements`. |
+| `skip` | `boolean` | `false` | Prevents generation when `true`. |
+| `debug` | `boolean` | `false` | Enables generator logs. |
+| `componentDescriptionOptions` | `ComponentDescriptionOptions` | | Configures component documentation and API order in the generated declarations. |
+
+## Complete Configuration Example
+
+```ts
+import { generateSvelteTypes } from "@wc-toolkit/svelte-types";
+import manifest from "./custom-elements.json";
+
+generateSvelteTypes(manifest, {
+  fileName: "custom-elements-svelte.d.ts",
+  outdir: "./src/types",
+  exclude: ["InternalComponent"],
+  componentTypePath: (name, tagName) =>
+    `my-library/components/${tagName}/${tagName}.js`,
+  globalEvents: `
+    "on:telemetry"?: (event: CustomEvent<TelemetryDetail>) => void;
+  `,
+  includeDefaultDOMEvents: true,
+  typesSrc: "parsedType",
+  tagFormatter: (tagName) => tagName.toLowerCase(),
+  componentDescriptionOptions: {
+    descriptionSrc: "summary",
+  },
+  debug: process.env.DEBUG === "true",
+  skip: false,
+});
+```
+
+For more information about this package and other Web Component tools, visit the [WC Toolkit website](https://wc-toolkit.com).
