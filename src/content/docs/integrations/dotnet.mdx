@@ -1,0 +1,301 @@
+---
+title: .NET Tools
+description: Generate ASP.NET Tag Helpers and Blazor component wrappers for your custom elements
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_dotnet.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_dotnet.png
+hero:
+  title: ".NET Tools"
+  tagline: Generate ASP.NET Tag Helpers and Blazor components for your custom elements
+  image:
+    alt: A workbench with tools, html, css, javascript, and the .NET logo
+    file: ../../../assets/wc-toolkit_dotnet.png
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+`@wc-toolkit/dotnet-tools` turns a [Custom Elements Manifest](https://custom-elements-manifest.open-wc.org/) (CEM) into a .NET package that contains both ASP.NET Core Tag Helpers and Blazor component wrappers. It is intended for teams that build Web Components in JavaScript or TypeScript but consume them from Razor Pages, MVC, or Blazor applications.
+
+## Why use it?
+
+Web Components are easy to render as HTML, but from .NET they are usually used without type safety or autocomplete, or with hand-maintained types and wrappers. This package uses the metadata your Web Component toolchain already produces to create the .NET integration layer for you.
+
+The generated package gives .NET consumers:
+
+- Tag Helpers for each custom element, with properties for documented attributes.
+- Blazor components with typed parameters, child content for slots, and `EventCallback` properties for custom events.
+- Shared JavaScript interop that forwards custom element events to Blazor.
+- A single Razor Class Library (RCL) NuGet package for both MVC/Razor Pages and Blazor consumers.
+- Automatic Tag Helper registration through the package's `build/*.props` file.
+
+The CEM remains the source of truth, so a component API change can flow into the .NET package as part of the same build or release process.
+
+<Aside>
+  This package generates .NET wrappers. The Web Component JavaScript must still be loaded by your application.
+</Aside>
+
+## Requirements
+
+- A current Node.js LTS release is recommended.
+- A CEM with `schemaVersion` and `modules` fields.
+- The .NET 8 SDK for the default target framework (`net8.0`). Set `targetFramework` to use another installed framework.
+
+## Installation
+
+Install the package in the project that generates your manifest:
+
+```sh
+npm i -D @wc-toolkit/dotnet-tools
+```
+
+The package exposes separate entry points for the main API, the build plugins, and the Tag Helper and Blazor generators:
+
+```ts
+import { packDotNetTypes } from "@wc-toolkit/dotnet-tools";
+import {
+  dotnetTypesAnalyzerPlugin,
+  dotnetTypesGeneratorPlugin,
+} from "@wc-toolkit/dotnet-tools/plugin";
+import { generateTagHelpers } from "@wc-toolkit/dotnet-tools/tag-helpers";
+import { generateBlazorComponents } from "@wc-toolkit/dotnet-tools/blazor";
+```
+
+## Quick start
+
+`packDotNetTypes` accepts a parsed CEM. It generates a temporary RCL project, builds it, and packs it into a `.nupkg` file:
+
+```ts
+import { readFile } from "node:fs/promises";
+import { packDotNetTypes } from "@wc-toolkit/dotnet-tools";
+
+const manifest = JSON.parse(await readFile("./custom-elements.json", "utf8"));
+
+const result = await packDotNetTypes({
+  manifest,
+  packageId: "Acme.Components",
+  namespace: "Acme.Components",
+  version: "1.0.0",
+});
+
+console.log(result?.nupkgPath);
+```
+
+The output is written to `.cem-dotnet-publish/<packageId>` by default. Each run removes and recreates that directory.
+
+The result includes `projectDir`, `nupkgPath`, `tagHelperFileCount`, and `blazorFileCount`. Set `pack: false` to generate the project without running `dotnet restore`, `dotnet build`, or `dotnet pack`.
+
+The package never publishes to a NuGet feed. Publishing stays under your control.
+
+## Build integration
+
+You can trigger generation in three ways. All of them run the same pipeline and produce the same output.
+
+### Programmatic generation
+
+Call `packDotNetTypes` directly when you control when generation runs. This is the most reliable option for release builds because you can `await` the result.
+
+### CEM Generator plugin
+
+Add `dotnetTypesGeneratorPlugin` to the `plugins` option of your `cem-generator` config:
+
+```js
+// cem-generator.config.mjs
+import { dotnetTypesGeneratorPlugin } from "@wc-toolkit/dotnet-tools/plugin";
+
+export default {
+  filePath: "dist/custom-elements.json",
+  include: ["src/**/*.ts"],
+  plugins: [
+    dotnetTypesGeneratorPlugin({
+      packageId: "Acme.Components",
+      namespace: "Acme.Components",
+      version: "1.0.0",
+    }),
+  ],
+};
+```
+
+To add the plugin when you set up `cem-generator`, choose `dotnet-tools` in the integrations list of `cem init`. The command writes this entry with placeholder `packageId`, `namespace`, and `version` values (`Acme.Components` and `1.0.0`). Update them before you generate.
+
+### CEM Analyzer plugin
+
+Add `dotnetTypesAnalyzerPlugin` to your analyzer config. It runs after the final manifest is assembled:
+
+```js
+// custom-elements-manifest.config.mjs
+import { dotnetTypesAnalyzerPlugin } from "@wc-toolkit/dotnet-tools/plugin";
+
+export default {
+  globs: ["src/**/*.ts"],
+  outdir: "dist",
+  plugins: [
+    dotnetTypesAnalyzerPlugin({
+      packageId: "Acme.Components",
+      namespace: "Acme.Components",
+      version: "1.0.0",
+    }),
+  ],
+};
+```
+
+<Aside type="caution">
+  The plugins do not wait for package generation. They queue the work in the background, and the process can exit before the package is written. Use the plugins for local or watch builds. For release builds, call `packDotNetTypes` and `await` it, or call `await dotnetTypes.flush()` after generation when you use a plugin.
+</Aside>
+
+## Options
+
+Only `manifest`, `packageId`, `namespace`, and `version` are required. The plugins accept every option except `manifest`, because the build tool supplies the manifest.
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `manifest` | required | Parsed Custom Elements Manifest. Not accepted by the plugins. |
+| `packageId` | required | NuGet package ID. |
+| `namespace` | required | Namespace for generated C# and Razor types. |
+| `version` | required | Version included in the package. |
+| `outdir` | `.cem-dotnet-publish/<packageId>` | Output directory for the generated RCL and package. |
+| `typeSrc` | `parsedType` | CEM property to read types from. Falls back to `parsedType`, then `type`. |
+| `exclude` | `[]` | Component declaration names to omit. |
+| `skip` | `false` | Skips generation and packing entirely. |
+| `pack` | `true` | Creates the `.nupkg`. Set to `false` to leave the project unpacked. |
+| `debug` | `false` | Logs resolved options and each generated file. |
+| `tagHelpers` | `true` | Generates Tag Helpers into `TagHelpers/`. |
+| `blazor` | `true` | Generates Blazor wrappers into `Blazor/`. At least one of `tagHelpers` or `blazor` must be enabled. |
+| `targetFramework` | `net8.0` | Target framework for the generated project. |
+| `emitEnumsForUnions` | `true` | Emits C# enums for string-literal unions in Tag Helpers. |
+| `validateParity` | `true` | Fails generation when a CEM member is missing from the Blazor model. |
+| `formValueMembers` | `["value", "checked"]` | Attribute or member names that hold a form control's live value. |
+| `slotWrapperTag` | `"span"` | Element wrapping named slot content. `null` emits no wrapper. |
+| `booleanOffValue` | `"false"` | Attribute value written for an off tri-state boolean. |
+| `staticAssets` | `[]` | Files or directories copied into the package's `wwwroot/`. |
+
+### Include web component assets
+
+To ship built JavaScript or CSS in the NuGet package, pass the files with `staticAssets`. Source paths resolve from the current working directory. Directories are copied recursively. `destination` is relative to `wwwroot/` and defaults to the source's basename:
+
+```ts
+await packDotNetTypes({
+  manifest,
+  packageId: "Acme.Components",
+  namespace: "Acme.Components",
+  version: "1.0.0",
+  staticAssets: [
+    {
+      source: "node_modules/@acme/elements/dist",
+      destination: "acme-elements",
+    },
+  ],
+});
+```
+
+The host application can then reference the files through the package ID:
+
+```html
+<link rel="stylesheet" href="_content/Acme.Components/acme-elements/elements.css" />
+<script type="module" src="_content/Acme.Components/acme-elements/index.js"></script>
+```
+
+## Generated output
+
+For each custom element declaration with `customElement: true` and a `tagName`, the generator creates:
+
+```text
+<outdir>
+  <packageId>.csproj
+  build/<packageId>.props
+  wwwroot/customElementInterop.js
+  TagHelpers/<ElementName>TagHelper.cs
+  Blazor/<ElementName>.razor
+  Blazor/<ElementName>.razor.cs
+  Blazor/CustomEventArgs.cs
+  Blazor/GeneratedComponentBase.cs
+  Blazor/GeneratedInputBase.cs
+```
+
+Kebab-case tag names become PascalCase C# and Razor names. For example, `acme-date-picker` generates `AcmeDatePickerTagHelper` and `AcmeDatePicker`.
+
+### Type mapping
+
+| CEM type | Generated C# type |
+| --- | --- |
+| `boolean` | `bool` |
+| `number` | `double?` |
+| `string` | `string?` |
+| missing or unrecognized | `string?` |
+| string-literal union such as `"small" \| "large"` | nullable generated enum for Tag Helpers; `string?` for Blazor |
+
+Inline object shapes such as `{ side: string; offset?: number }` generate a shared record. Other named types, such as interfaces or unions, map to `JsonElement?`.
+
+A `boolean` attribute whose default is `true` becomes a tri-state `bool?`, so a false value can be written explicitly. Set `booleanOffValue` to `"off"` for elements that use that spelling.
+
+Members marked `private` or `protected` are never generated. Members with no `privacy` are treated as public.
+
+## Consume the package
+
+Install the generated package in an ASP.NET Core or Blazor application:
+
+```sh
+dotnet add package Acme.Components --version 1.0.0
+```
+
+Load the JavaScript that defines your custom elements in the host application before you render them.
+
+### Razor Pages and MVC
+
+The package's `build/<packageId>.props` file registers the Tag Helpers for normal NuGet consumers. If that file is not imported in your setup, add this to `_ViewImports.cshtml`:
+
+```razor
+@addTagHelper *, Acme.Components
+```
+
+Then use the original custom element tag in a view:
+
+```razor
+<acme-date-picker value="2026-09-27"></acme-date-picker>
+```
+
+### Blazor
+
+Import the generated namespace in `_Imports.razor`:
+
+```razor
+@using Acme.Components
+```
+
+Load the interop script once in the host page:
+
+```html
+<script src="_content/Acme.Components/customElementInterop.js"></script>
+```
+
+Render the component and bind its event callbacks:
+
+```razor
+<AcmeDatePicker Value="2026-09-27" OnDateChanged="HandleDateChanged" />
+
+@code {
+    private Task HandleDateChanged(CustomEventArgs args)
+    {
+        // args.Detail contains the event detail as a JsonElement.
+        return Task.CompletedTask;
+    }
+}
+```
+
+Components for elements with slots expose `ChildContent`, and each named slot renders only when content is supplied for it. Named slot content is wrapped in a `<span>` with the `slot` attribute by default. Set `slotWrapperTag` to `"div"` for block content, or to `null` to supply your own element with the `slot` attribute.
+
+## Limitations
+
+- Only custom element declarations with a `tagName` are generated.
+- Unknown attribute types become `string?`.
+- Records are generated only for inline object literals. Named interfaces, unions, and referenced classes fall back to `JsonElement?`.
+- Event details that are not inline object literals fall back to an untyped `CustomEventArgs`.
+
+## Learn more
+
+The [package README](https://github.com/wc-toolkit/dotnet-tools#readme) covers the full option reference, direct generation APIs, parity validation, and NuGet publishing guidance.

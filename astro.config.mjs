@@ -99,6 +99,7 @@ export default defineConfig({
             { label: "JSX", slug: "integrations/jsx" },
             { label: "Vue.js", slug: "integrations/vuejs" },
             { label: "Svelte", slug: "integrations/svelte" },
+            { label: ".NET", slug: "integrations/dotnet" },
             { label: "Linting & Validation", slug: "integrations/wctools" },
             { label: "Storybook", slug: "integrations/storybook" },
           ],
