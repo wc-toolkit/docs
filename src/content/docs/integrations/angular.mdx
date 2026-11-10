@@ -1,0 +1,150 @@
+---
+title: Angular Wrappers
+description: Generate standalone, typed Angular wrappers for custom elements from a Custom Elements Manifest.
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://wc-toolkit.com/images/wc-toolkit_angular.png
+  - tag: meta
+    attrs:
+      property: twitter:image
+      content: https://wc-toolkit.com/images/wc-toolkit_angular.png
+hero:
+  title: "Angular Wrappers"
+  tagline: Generate standalone, typed Angular wrappers for your custom elements
+  image:
+    alt: WC Toolkit Angular Wrappers artwork
+    file: ../../../assets/wc-toolkit_angular.png
+---
+
+`@wc-toolkit/angular-wrappers` generates standalone Angular components from a [Custom Elements Manifest (CEM)](https://custom-elements-manifest.open-wc.org/). Each generated component uses the custom element's tag as its selector and exposes typed Angular inputs and outputs, so Angular templates can check bindings against your web component API.
+
+## Install
+
+```bash
+npm install -D @wc-toolkit/angular-wrappers
+```
+
+Angular 16.1 or later is required.
+
+## Generate wrappers
+
+Use the plugin that matches your manifest workflow.
+
+### With the WC Toolkit CEM Generator
+
+Add the plugin to `cem-generator.config.mjs` and run `cem generate`:
+
+```js
+import { angularWrappersGeneratorPlugin } from "@wc-toolkit/angular-wrappers";
+
+export default {
+  plugins: [angularWrappersGeneratorPlugin({ outdir: "./src/app/wrappers" })],
+};
+```
+
+### With the CEM Analyzer
+
+Add the plugin to `custom-elements-manifest.config.mjs` and run `cem analyze`:
+
+```js
+import { angularWrappersAnalyzerPlugin } from "@wc-toolkit/angular-wrappers";
+
+export default {
+  plugins: [angularWrappersAnalyzerPlugin({ outdir: "./src/app/wrappers" })],
+};
+```
+
+### Programmatically
+
+For a custom build script, pass a manifest object directly to the generator:
+
+```ts
+import manifest from "./custom-elements.json" with { type: "json" };
+import { generateAngularWrappers } from "@wc-toolkit/angular-wrappers";
+
+generateAngularWrappers(manifest, { outdir: "./src/app/wrappers" });
+```
+
+## Use generated components
+
+The output directory contains one standalone component per custom element and an `index.ts` barrel file. Import the generated wrapper into the Angular component that uses it:
+
+```ts
+import { Component } from "@angular/core";
+import { MyButton } from "./wrappers";
+
+@Component({
+  selector: "app-root",
+  standalone: true,
+  imports: [MyButton],
+  template: `
+    <my-button
+      [variant]="variant"
+      [disabled]="isSaving"
+      (myClick)="onClick($event)"
+    >
+      Save
+    </my-button>
+  `,
+})
+export class AppComponent {
+  variant: "primary" | "secondary" = "primary";
+  isSaving = false;
+
+  onClick(event: CustomEvent<{ count: number }>) {
+    console.log(event.detail.count);
+  }
+}
+```
+
+Generated wrappers use the custom element as their host, so projected content remains light DOM children. Inputs are typed from the element class and manifest documentation; boolean attributes are coerced with Angular's `booleanAttribute`. Custom events become outputs with camel-cased names (`my-click` becomes `myClick`), and generated listeners are removed when the Angular component is destroyed.
+
+Compile the generated TypeScript with your library build (for example, `ng-packagr`) or copy it into the consuming application.
+
+## Configuration
+
+All options can be passed to either plugin or `generateAngularWrappers()`.
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `outdir` | `"./angular"` | Directory for generated files. |
+| `packageJsonPath` | `process.cwd()/package.json` | Package manifest used to resolve fallback module imports. Set this when generating outside the element package or in a monorepo. |
+| `modulePath` | CEM module path | `(className, tagName, cemModulePath?) => string` to customize element module imports. |
+| `defaultExport` | `false` | Import element classes as default exports. |
+| `stronglyTypedEvents` | `true` | Generate event aliases with the custom element as the event target. |
+| `ssrSafe` | `false` | Browser-gate event wiring and dynamically load custom element modules for Angular SSR. |
+| `attributeMapping` | `{}` | Map HTML attributes to safe Angular input names, for example `class` to `cssClass`. |
+| `globalProps`, `globalEvents` | `[]` | Add shared inputs or outputs to every generated wrapper. |
+| `componentNameFormatter` | — | Customize generated class and file names. |
+| `exclude` | `[]` | Skip components by class name. |
+| `descriptionSrc` | `"description"` | Manifest field used for component documentation. |
+| `debug` | `false` | Enable detailed generation logs. |
+| `failOnWarnings` | `false` | Treat generation warnings as errors; recommended for CI. |
+| `skip` | `false` | Skip generation, useful for conditional builds. |
+
+### Reserved attribute names
+
+Generation fails if an element has attributes named `class`, `for`, `style`, or `children`, because these conflict with HTML or Angular names. Map them to another input name:
+
+```js
+angularWrappersAnalyzerPlugin({
+  attributeMapping: { class: "cssClass" },
+});
+```
+
+### Server-side rendering
+
+Set `ssrSafe: true` to load custom element modules only in the browser and attach event listeners there. This avoids eagerly evaluating client-only custom element code during server rendering.
+
+## Limitations
+
+- Angular template checking only covers components imported into the Angular component. Raw custom element tags without generated wrappers still require `CUSTOM_ELEMENTS_SCHEMA`.
+- Generated types and documentation depend on the information available in the CEM; undocumented members are omitted.
+
+## Demo
+
+The [package repository](https://github.com/wc-toolkit/angular-wrappers) includes an Angular CLI demo. From its root, run `pnpm demo` to analyze the sample elements and generate wrappers, or `pnpm demo:app` to generate the wrappers and start the app at `http://localhost:4200`.
+
+For the complete option reference and troubleshooting notes, see the [package README](https://github.com/wc-toolkit/angular-wrappers#readme).

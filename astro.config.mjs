@@ -95,6 +95,7 @@ export default defineConfig({
           label: "Integrations",
           items: [
             { label: "Overview", slug: "integrations/overview" },
+            { label: "Angular", slug: "integrations/angular" },
             { label: "React", slug: "integrations/react" },
             { label: "JSX", slug: "integrations/jsx" },
             { label: "Vue.js", slug: "integrations/vuejs" },
